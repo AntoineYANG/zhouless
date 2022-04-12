@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "espoirVersion": 1,
+  "contributors": [
+    "kyusho antoineyang99@gmail.com"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AntoineYANG/zhouless.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AntoineYANG/zhouless/issues"
+  },
+  "homepage": "https://github.com/AntoineYANG/zhouless/README.md",
+  "scripts": {},
+  "devDependencies": {},
+  "peerDependencies": {
+    "espoir-cli": "^1.2.3"
+  }
+}
