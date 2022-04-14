@@ -11,24 +11,39 @@ import styled from 'styled-components';
 import debounce from '@utils/debounce';
 
 
-const ResizeBarElement = styled.div({
+const SIZE = 20;
+
+const ResizeBarElement = styled.div<{ direction: 'ew' | 'ns' }>(({ direction }) => ({
   position: 'absolute',
-  left: 0,
-  bottom: 0,
-  width: '100%',
-  height: '16px',
   backgroundColor: '#fff2',
   backdropFilter: 'brightness(1.25) blur(1.5px)',
-  transform: 'translateY(50%)',
-  cursor: 'ns-resize',
+  ...(direction === 'ew' ? {
+    // horizontal -> at right
+    top: 0,
+    right: 0,
+    width: `${SIZE}px`,
+    height: '100%',
+    transform: 'translateX(50%)',
+    cursor: 'ew-resize',
+  } : {
+    // vertical -> at bottom
+    left: 0,
+    bottom: 0,
+    width: '100%',
+    height: `${SIZE}px`,
+    transform: 'translateY(50%)',
+    cursor: 'ns-resize',
+  }),
   opacity: 0.01,
   '&:hover, &.active': {
     opacity: 1
   },
-  transition: 'opacity 200ms'
-});
+  transition: 'opacity 200ms',
+}));
 
 export interface ResizeBarProps {
+  /** 方向，默认为 ns */
+  direction?: 'ew' | 'ns';
   container: HTMLElement;
   target: HTMLElement | undefined | null;
   /** 比例，默认为 0.25 */
@@ -36,7 +51,7 @@ export interface ResizeBarProps {
   /** 比例，默认为 1 */
   max?: number;
   /** 注意用 useCallback 包裹，不然组件会一直刷新 */
-  onResize: (h: number) => void;
+  onResize: (px: number) => void;
   /** 触发回调的时长，单位 ms，默认为 20 */
   debounceSpan?: number;
 }
@@ -45,6 +60,7 @@ export interface ResizeBarProps {
  * 调整视窗大小的交互工具.
  */
 const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
+  direction = 'ns',
   container,
   target,
   min = 0.25,
@@ -59,35 +75,43 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
     [onResize, debounceSpan]
   );
 
+  // 屏蔽 drag 事件
   React.useEffect(() => {
     element?.addEventListener(
       'dragstart',
       e => {
         e.preventDefault();
       }, {
-        passive: false
+        passive: false // passive 需要设置为 false，只能用原生的，React 不支持
       }
     );
   }, [element]);
 
+  // 设置监听逻辑
   React.useEffect(() => {
     if (!element || !target) {
       return;
     }
 
-    const targetY = target.offsetTop;
-    const containerHeight = container.clientHeight;
-    const highest = targetY + containerHeight * min;
-    const lowest = targetY + containerHeight * max;
+    const targetPos = target[direction === 'ns' ? 'offsetTop' : 'offsetLeft'];
+    const containerSize = container[direction === 'ns' ? 'clientHeight' : 'clientWidth'];
+    const minSizePx = targetPos + containerSize * min;
+    const maxSizePx = targetPos + containerSize * max;
 
     let resizing = false;
-    let dy = NaN;
-    let curY = NaN;
+    let offset = NaN;
+    let curPos = NaN;
     let thisElement: HTMLDivElement | null = null;
 
     const handleResizeStart = (e: MouseEvent) => {
       thisElement = e.currentTarget as HTMLDivElement;
-      dy = e.clientY - thisElement.offsetTop;
+      curPos = e[direction === 'ns' ? 'clientY' : 'clientX'];
+
+      offset = e[
+        direction === 'ns' ? 'clientY' : 'clientX'
+      ] - thisElement[
+        direction === 'ns' ? 'offsetTop' : 'offsetLeft'
+      ] - /* 元素本身宽度造成的偏移量 */ SIZE;
       resizing = true;
       thisElement.classList.add('active');
     };
@@ -104,26 +128,32 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
         return;
       }
 
-      const { clientY: absY } = e;
+      const { [direction === 'ns' ? 'clientY' : 'clientX']: absPos } = e;
 
-      if (curY === absY) {
+      if (curPos === absPos) {
         return;
       }
 
-      curY = absY;
+      curPos = absPos;
 
-      if (absY > lowest || absY < highest) {
-        return;
-      }
+      const validPos = Math.min(
+        maxSizePx,
+        Math.max(
+          minSizePx,
+          absPos
+        )
+      );
 
-      const height = (absY + dy - 10) - targetY;
+      const px = (validPos - offset) - targetPos;
 
-      callback(height);
+      callback(px);
     };
 
-    const handleResizeEnd = () => {
-      resizing = false;
-      thisElement?.classList.remove('active');
+    const handleResizeEnd = (e: MouseEvent) => {
+      if (resizing) {
+        resizing = false;
+        thisElement?.classList.remove('active');
+      }
     };
 
     element.addEventListener('mousedown', handleResizeStart);
@@ -140,6 +170,14 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
   return (
     <ResizeBarElement
       ref={e => element || (e && setElement(e))}
+      direction={direction}
+      onClick={e => e.stopPropagation()}
+      onMouseDown={e => e.stopPropagation()}
+      onMouseUp={e => e.stopPropagation()}
+      onMouseMove={e => e.stopPropagation()}
+      onTouchStart={e => e.stopPropagation()}
+      onTouchMove={e => e.stopPropagation()}
+      onTouchEnd={e => e.stopPropagation()}
     >
     </ResizeBarElement>
   );

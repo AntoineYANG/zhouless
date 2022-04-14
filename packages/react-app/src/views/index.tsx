@@ -16,6 +16,7 @@ export interface EditorContext {
       url: string;
       data: File;
       size: number;
+      duration?: number;
       audio?: {
         url: string;
         data: ArrayBuffer;
@@ -26,20 +27,28 @@ export interface EditorContext {
 
 export type OpenVideoAction = {
   type: 'OPEN_VIDEO';
-  preload: {
+  payload: {
     video: File;
+  };
+};
+
+export type SetOriginDurationAction = {
+  type: 'SET_ORIGIN_DURATION';
+  payload: {
+    duration: number;
   };
 };
 
 export type SetOriginAudioAction = {
   type: 'SET_ORIGIN_AUDIO';
-  preload: {
+  payload: {
     audio: ArrayBuffer;
   };
 };
 
 export type EditorContextAction = (
   | OpenVideoAction
+  | SetOriginDurationAction
   | SetOriginAudioAction
 );
 
@@ -63,18 +72,35 @@ const App: React.FC = React.memo(function App () {
       switch (action.type) {
         case 'OPEN_VIDEO': {
           if (!state.workspace) {
-            const url = URL.createObjectURL(action.preload.video);
+            const url = URL.createObjectURL(action.payload.video);
 
             return {
               ...state,
               workspace: {
                 dir: '(unknown)',
-                filename: action.preload.video.name,
+                filename: action.payload.video.name,
                 origin: {
                   url,
                   audio: undefined,
-                  size: action.preload.video.size,
-                  data: action.preload.video
+                  size: action.payload.video.size,
+                  data: action.payload.video
+                }
+              }
+            };
+          }
+
+          return state;
+        }
+
+        case 'SET_ORIGIN_DURATION': {
+          if (state.workspace && state.workspace.origin.duration === undefined) {
+            return {
+              ...state,
+              workspace: {
+                ...state.workspace,
+                origin: {
+                  ...state.workspace.origin,
+                  duration: action.payload.duration
                 }
               }
             };
@@ -86,7 +112,7 @@ const App: React.FC = React.memo(function App () {
         case 'SET_ORIGIN_AUDIO': {
           if (state.workspace) {
             const url = URL.createObjectURL(
-              new File([action.preload.audio], 'origin.wav')
+              new File([action.payload.audio], 'origin.wav')
             );
 
             return {
@@ -97,7 +123,7 @@ const App: React.FC = React.memo(function App () {
                   ...state.workspace.origin,
                   audio: {
                     url,
-                    data: action.preload.audio
+                    data: action.payload.audio
                   }
                 }
               }
@@ -138,7 +164,7 @@ const App: React.FC = React.memo(function App () {
 
         (contextDispatch as (action: EditorContextAction) => void)({
           type: 'SET_ORIGIN_AUDIO',
-          preload: {
+          payload: {
             audio
           }
         });

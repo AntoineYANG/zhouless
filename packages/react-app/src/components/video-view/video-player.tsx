@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 21:48:28 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-13 23:56:16
+ * @Last Modified time: 2022-04-14 21:07:24
  */
 
 import React from 'react';
@@ -23,6 +23,7 @@ export interface VideoPlayerProps {
   url: string;
   subscribe: (item: Playable) => void;
   unsubscribe: (item: Playable) => void;
+  onReady: (e: React.SyntheticEvent<HTMLVideoElement, Event>) => void;
 }
 
 /**
@@ -32,7 +33,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
   container,
   url,
   subscribe,
-  unsubscribe
+  unsubscribe,
+  onReady,
 }) {
   const [{ videoWidth, videoHeight }, setVideoSize] = React.useState({
     videoWidth: 0,
@@ -44,7 +46,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
       videoWidth: e.currentTarget.videoWidth,
       videoHeight: e.currentTarget.videoHeight
     });
-  }, [setVideoSize]);
+    onReady(e);
+  }, [setVideoSize, onReady]);
 
   const [{ maxWidth, maxHeight }, setMaxSize] = React.useState({
     maxWidth: container.clientWidth,

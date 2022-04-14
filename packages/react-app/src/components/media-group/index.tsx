@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 16:38:33 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-14 00:33:32
+ * @Last Modified time: 2022-04-14 21:14:56
  */
 
 import React from 'react';
@@ -12,6 +12,7 @@ import ResizeBar from '@components/resize-bar';
 import VideoView from '@components/video-view';
 import AudioView from '@components/audio-view';
 import type { EditorContext, EditorContextDispatcher } from '@views/index';
+import useLocalStorage from '@utils/use_local_storage';
 
 
 const MIN_HEIGHT = 0.3;
@@ -27,6 +28,7 @@ const MediaGroupElement = styled.section({
   flexDirection: 'row',
   alignItems: 'stretch',
   justifyContent: 'stretch',
+  overflow: 'hidden',
   backgroundColor: '#222',
   transition: 'height 10ms',
 });
@@ -53,7 +55,10 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
   container
 }) {
   const [groupElement, setGroupElement] = React.useState<HTMLElement>();
-  const [height, setHeight] = React.useState<number>(window.innerHeight * 0.52);
+  const [height, setHeight] = useLocalStorage(
+    'media_group_height',
+    window.innerHeight * 0.52
+  );
 
   const onResize = React.useCallback((h: number) => {
     setHeight(h);
@@ -62,10 +67,19 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
   const openVideo = React.useCallback((video: File) => {
     dispatch({
       type: 'OPEN_VIDEO',
-      preload: {
+      payload: {
         video
       }
-    })
+    });
+  }, [dispatch]);
+
+  const setVideoDuration = React.useCallback((duration: number) => {
+    dispatch({
+      type: 'SET_ORIGIN_DURATION',
+      payload: {
+        duration
+      }
+    });
   }, [dispatch]);
 
   const playableListRef = React.useRef<Playable[]>([]);
@@ -116,12 +130,18 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
       }}
       onClick={playOrPause}
     >
-      <VideoView
-        context={context}
-        openVideo={openVideo}
-        subscribe={subscribe}
-        unsubscribe={unsubscribe}
-      />
+      {
+        groupElement && (
+          <VideoView
+            parent={groupElement}
+            context={context}
+            openVideo={openVideo}
+            setVideoDuration={setVideoDuration}
+            subscribe={subscribe}
+            unsubscribe={unsubscribe}
+          />
+        )
+      }
       <AudioView
         context={context}
         subscribe={subscribe}
