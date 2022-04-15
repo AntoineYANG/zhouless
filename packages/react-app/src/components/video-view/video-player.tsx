@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 21:48:28 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-14 21:07:24
+ * @Last Modified time: 2022-04-15 23:38:48
  */
 
 import React from 'react';
@@ -15,11 +15,11 @@ const VideoPlayerElement = styled.video({
   maxWidth: '98%',
   maxHeight: '98%',
   outline: 'none',
-  transition: 'width 10ms, height 10ms',
+  transition: 'width 100ms, height 100ms, opacity 100ms',
 });
 
 export interface VideoPlayerProps {
-  container: HTMLElement;
+  container: HTMLElement | undefined;
   url: string;
   subscribe: (item: Playable) => void;
   unsubscribe: (item: Playable) => void;
@@ -42,22 +42,33 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
   });
 
   const handleCanPlay = React.useCallback((e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    if (videoWidth && videoHeight) {
+      return;
+    }
+
     setVideoSize({
       videoWidth: e.currentTarget.videoWidth,
       videoHeight: e.currentTarget.videoHeight
     });
     onReady(e);
-  }, [setVideoSize, onReady]);
+  }, [videoWidth, videoHeight, setVideoSize, onReady]);
 
   const [{ maxWidth, maxHeight }, setMaxSize] = React.useState({
-    maxWidth: container.clientWidth,
-    maxHeight: container.clientHeight
+    maxWidth: container?.clientWidth ?? 0,
+    maxHeight: container?.clientHeight ?? 0
   });
 
   React.useEffect(() => {
-    if (!container.parentElement) {
+    if (!container?.parentElement) {
       return;
     }
+    
+    const maxW = container.clientWidth;
+    const maxH = container.clientHeight;
+    setMaxSize({
+      maxWidth: maxW,
+      maxHeight: maxH
+    });
     
     const observer = new MutationObserver(() => {
       const maxW = container.clientWidth;
@@ -81,7 +92,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
     return () => {
       observer.disconnect();
     };
-  }, [container.parentElement]);
+  }, [container?.parentElement, setMaxSize]);
 
   const { w, h } = React.useMemo(() => {
     if (videoWidth && videoHeight && maxWidth && maxHeight) {
@@ -134,7 +145,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
 
     return () => {
       unsubscribe(item);
-    }
+    };
   }, [player]);
 
   return (
@@ -143,16 +154,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
       controls={false}
       preload="auto"
       onCanPlay={handleCanPlay}
-      muted
+      // muted
       ref={e => e && setPlayer(e)}
       style={
         w && h ? {
           width: `${w}px`,
           height: `${h}px`
         } : {
-          width: '1px',
-          height: '1px',
-          opacity: 0
+          width: '80%',
+          height: '80%',
+          opacity: 0.5
         }
       }
     />

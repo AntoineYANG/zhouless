@@ -2,16 +2,15 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 23:23:53 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 02:27:39
+ * @Last Modified time: 2022-04-15 23:58:54
  */
 
 import React from 'react';
 import styled from 'styled-components';
-// import WaveSurfer from 'wavesurfer.js';
 
-import type { EditorContext } from '@views';
+import type EditorContext from '@views/context';
 import type { Playable } from '@components/media-group';
-import parseWav, { drawFrames } from '@utils/parse_wav';
+import parseWav, { drawWavData } from '@utils/parse_wav';
 
 
 const WaveViewElement = styled.div({
@@ -22,6 +21,7 @@ const WaveViewElement = styled.div({
 });
 
 const WaveContainer = styled.div({
+  position: 'relative',
   width: '100%',
   height: '100%',
   display: 'flex',
@@ -36,6 +36,16 @@ const Wave = styled.div<{ dataUrl: string; w: number }>(({ dataUrl, w }) => ({
   width: w,
   height: '100%',
   backgroundSize: '100% 128px',
+}));
+
+const WaveProgress = styled.div<{ curT: number; duration: number; w: number }>(({ curT, duration, w }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: `${(curT / duration * w).toFixed(3)}px`,
+  height: '100%',
+  borderRight: '1px solid #fffa',
+  backdropFilter: 'brightness(0.6)',
 }));
 
 export interface WaveViewProps {
@@ -54,8 +64,51 @@ const WaveView: React.FC<WaveViewProps> = ({
   unsubscribe,
   setTime
 }) => {
-  // const [container, setContainer] = React.useState<HTMLDivElement>();
-  // const [canvas, setCanvas] = React.useState<HTMLCanvasElement>();
+  const [curTime, setCurTime] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    let video = document.querySelector('video');
+
+    let paused = true;
+
+    const updateProgress = () => {
+      if (paused) {
+        return;
+      }
+      
+      video = video ?? document.querySelector('video');
+
+      if (!video) {
+        return;
+      }
+
+      setCurTime(video.currentTime);
+
+      requestAnimationFrame(updateProgress);
+    };
+
+    const item: Playable = {
+      name: 'wave-view',
+      play() {
+        if (paused) {
+          requestAnimationFrame(updateProgress);
+          paused = false;
+        }
+      },
+      pause() {
+        if (!paused) {
+          paused = true;
+        }
+      },
+      setTime(time) {
+        setCurTime(time);
+      }
+    };
+
+    subscribe(item);
+
+    return () => unsubscribe(item);
+  }, [subscribe, unsubscribe, setCurTime]);
 
   const { workspace } = React.useContext(context);
   const [wave, setWave] = React.useState<{
@@ -63,28 +116,29 @@ const WaveView: React.FC<WaveViewProps> = ({
     width: number;
   } | null>(null);
 
+  const [failed, setFailed] = React.useState(false);
+
   React.useEffect(() => {
     setWave(null);
+    setFailed(false);
   }, [workspace?.origin.audio]);
 
   React.useEffect(() => {
-    if (workspace?.origin.audio && typeof workspace.origin.duration === 'number') {
+    if (!wave && workspace?.origin.audio && typeof workspace.origin.duration === 'number') {
       parseWav(workspace.origin.audio.data).then(async d => {
         if (d) {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-          canvas.height = 256;
+          canvas.height = 400;
           canvas.style.position = 'fixed';
           canvas.style.left = '0';
-          canvas.style.top = '4vw';
-          canvas.style.border = '1px solid #999';
-          canvas.style.backgroundColor = '#0004';
+          canvas.style.top = '104vh';
           canvas.width = d.duration * 20;
 
           document.body.appendChild(canvas);
 
-          await drawFrames(ctx, d.frames, canvas.width);
+          await drawWavData(ctx, d.channels, canvas.width);
 
           setWave({
             dataUrl: canvas.toDataURL(),
@@ -99,7 +153,7 @@ const WaveView: React.FC<WaveViewProps> = ({
     }
 
     return;
-  }, [setTime, workspace?.origin.duration, workspace?.origin.audio?.data, setWave]);
+  }, [setTime, workspace?.origin.duration, workspace?.origin.audio?.data, wave, setWave]);
 
   return (
     <WaveViewElement
@@ -111,12 +165,21 @@ const WaveView: React.FC<WaveViewProps> = ({
       {/* TODO: i18n */}
       <WaveContainer>
         {
-          wave ? (
-            <Wave
-              dataUrl={wave.dataUrl}
-              w={wave.width}
-            />
-          ) : 'loading...'
+          failed ? 'failed' : (
+            wave ? (
+              <>
+                <Wave
+                  dataUrl={wave.dataUrl}
+                  w={wave.width}
+                />
+                <WaveProgress
+                  curT={curTime}
+                  duration={workspace?.origin.duration ?? 1}
+                  w={wave.width}
+                />
+              </>
+            ) : 'loading...'
+          )
         }
       </WaveContainer>
     </WaveViewElement>

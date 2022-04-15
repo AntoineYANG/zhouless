@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 16:38:33 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-13 22:47:10
+ * @Last Modified time: 2022-04-15 22:11:40
  */
 
 import React from 'react';
@@ -44,7 +44,7 @@ const ResizeBarElement = styled.div<{ direction: 'ew' | 'ns' }>(({ direction }) 
 export interface ResizeBarProps {
   /** 方向，默认为 ns */
   direction?: 'ew' | 'ns';
-  container: HTMLElement;
+  container: HTMLElement | undefined;
   target: HTMLElement | undefined | null;
   /** 比例，默认为 0.25 */
   min?: number;
@@ -89,7 +89,7 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
 
   // 设置监听逻辑
   React.useEffect(() => {
-    if (!element || !target) {
+    if (!element || !target || !container) {
       return;
     }
 

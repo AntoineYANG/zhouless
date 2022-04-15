@@ -6,53 +6,12 @@ import styled from 'styled-components';
 import MediaGroup from '@components/media-group';
 import '@locales/i18n';
 import separateAudioFromVideo from '@utils/separate_audio_from_video';
+import EditorContext, {
+  reducer,
+  defaultContextState,
+  EditorContextAction
+} from './context';
 
-
-export interface EditorContext {
-  workspace: {
-    dir: string;
-    filename: string;
-    origin: {
-      url: string;
-      data: File;
-      size: number;
-      duration?: number;
-      audio?: {
-        url: string;
-        data: ArrayBuffer;
-      } | undefined;
-    };
-  } | undefined;
-}
-
-export type OpenVideoAction = {
-  type: 'OPEN_VIDEO';
-  payload: {
-    video: File;
-  };
-};
-
-export type SetOriginDurationAction = {
-  type: 'SET_ORIGIN_DURATION';
-  payload: {
-    duration: number;
-  };
-};
-
-export type SetOriginAudioAction = {
-  type: 'SET_ORIGIN_AUDIO';
-  payload: {
-    audio: ArrayBuffer;
-  };
-};
-
-export type EditorContextAction = (
-  | OpenVideoAction
-  | SetOriginDurationAction
-  | SetOriginAudioAction
-);
-
-export type EditorContextDispatcher = (action: EditorContextAction) => void;
 
 const Main = styled.main({
   width: '100vw',
@@ -68,84 +27,11 @@ const App: React.FC = React.memo(function App () {
   const [container, setContainer] = React.useState<HTMLElement>();
 
   const [contextState, contextDispatch] = React.useReducer(
-    ((state: Readonly<EditorContext>, action: EditorContextAction): EditorContext => {
-      switch (action.type) {
-        case 'OPEN_VIDEO': {
-          if (!state.workspace) {
-            const url = URL.createObjectURL(action.payload.video);
-
-            return {
-              ...state,
-              workspace: {
-                dir: '(unknown)',
-                filename: action.payload.video.name,
-                origin: {
-                  url,
-                  audio: undefined,
-                  size: action.payload.video.size,
-                  data: action.payload.video
-                }
-              }
-            };
-          }
-
-          return state;
-        }
-
-        case 'SET_ORIGIN_DURATION': {
-          if (state.workspace && state.workspace.origin.duration === undefined) {
-            return {
-              ...state,
-              workspace: {
-                ...state.workspace,
-                origin: {
-                  ...state.workspace.origin,
-                  duration: action.payload.duration
-                }
-              }
-            };
-          }
-
-          return state;
-        }
-
-        case 'SET_ORIGIN_AUDIO': {
-          if (state.workspace) {
-            const url = URL.createObjectURL(
-              new File([action.payload.audio], 'origin.wav')
-            );
-
-            return {
-              ...state,
-              workspace: {
-                ...state.workspace,
-                origin: {
-                  ...state.workspace.origin,
-                  audio: {
-                    url,
-                    data: action.payload.audio
-                  }
-                }
-              }
-            };
-          }
-
-          return state;
-        }
-
-        default: {
-          return state;
-        }
-      }
-    }) as React.ReducerWithoutAction<EditorContext>,
-    {
-      workspace: undefined
-    } as EditorContext
+    reducer,
+    defaultContextState
   );
 
-  const context = React.createContext<EditorContext>({
-    workspace: undefined
-  });
+  const context = React.createContext<EditorContext>(defaultContextState);
 
   let runningSeparatingRef = React.useRef(false);
 
@@ -179,15 +65,11 @@ const App: React.FC = React.memo(function App () {
       <context.Provider
         value={contextState}
       >
-        {
-          container && (
-            <MediaGroup
-              context={context}
-              dispatch={contextDispatch}
-              container={container}
-            />
-          )
-        }
+        <MediaGroup
+          context={context}
+          dispatch={contextDispatch}
+          container={container}
+        />
       </context.Provider>
     </Main>
   );

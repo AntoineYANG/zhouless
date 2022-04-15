@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 16:38:33 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-14 21:14:56
+ * @Last Modified time: 2022-04-15 23:35:46
  */
 
 import React from 'react';
@@ -11,7 +11,8 @@ import styled from 'styled-components';
 import ResizeBar from '@components/resize-bar';
 import VideoView from '@components/video-view';
 import AudioView from '@components/audio-view';
-import type { EditorContext, EditorContextDispatcher } from '@views/index';
+import type EditorContext from '@views/context';
+import type { EditorContextDispatcher } from '@views/context';
 import useLocalStorage from '@utils/use_local_storage';
 
 
@@ -34,7 +35,7 @@ const MediaGroupElement = styled.section({
 });
 
 export interface MediaGroupProps {
-  container: HTMLElement;
+  container: HTMLElement | undefined;
   context: React.Context<EditorContext>;
   dispatch: EditorContextDispatcher;
 }
@@ -130,18 +131,14 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
       }}
       onClick={playOrPause}
     >
-      {
-        groupElement && (
-          <VideoView
-            parent={groupElement}
-            context={context}
-            openVideo={openVideo}
-            setVideoDuration={setVideoDuration}
-            subscribe={subscribe}
-            unsubscribe={unsubscribe}
-          />
-        )
-      }
+      <VideoView
+        parent={groupElement}
+        context={context}
+        openVideo={openVideo}
+        setVideoDuration={setVideoDuration}
+        subscribe={subscribe}
+        unsubscribe={unsubscribe}
+      />
       <AudioView
         context={context}
         subscribe={subscribe}

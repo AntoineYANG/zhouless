@@ -2,13 +2,13 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 18:36:40 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-14 21:15:06
+ * @Last Modified time: 2022-04-15 23:35:16
  */
 
 import React from 'react';
 import styled from 'styled-components';
 
-import type { EditorContext } from '@views';
+import type EditorContext from '@views/context';
 import ResizeBar from '@components/resize-bar';
 import OpenVideoButton from './open-video-button';
 import VideoPlayer from './video-player';
@@ -34,7 +34,7 @@ const VideoViewElement = styled.article({
 });
 
 export interface VideoViewProps {
-  parent: HTMLElement;
+  parent: HTMLElement | undefined;
   context: React.Context<EditorContext>;
   openVideo: (video: File) => void;
   setVideoDuration: (duration: number) => void;
@@ -78,7 +78,7 @@ const VideoView: React.FC<VideoViewProps> = ({
       }}
     >
       {
-        container && contextState.workspace ? (
+        contextState.workspace ? (
           <VideoPlayer
             url={contextState.workspace.origin.url}
             container={container}

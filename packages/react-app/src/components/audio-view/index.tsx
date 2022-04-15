@@ -2,13 +2,13 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 19:00:22 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-14 00:33:12
+ * @Last Modified time: 2022-04-15 22:54:02
  */
 
 import React from 'react';
 import styled from 'styled-components';
 
-import type { EditorContext } from '@views';
+import type EditorContext from '@views/context';
 import type { Playable } from '@components/media-group';
 import AudioPlayer from './audio-player';
 import WaveView from './wave-view';
@@ -51,11 +51,11 @@ const AudioView: React.FC<AudioViewProps> = ({
               unsubscribe={unsubscribe}
               setTime={setTime}
             />
-            <AudioPlayer
+            {/* <AudioPlayer
               url={workspace.origin.audio.url}
               subscribe={subscribe}
               unsubscribe={unsubscribe}
-            />
+            /> */}
           </>
         ) : null
       }
