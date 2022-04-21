@@ -3,7 +3,6 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import MediaGroup from '@components/media-group';
 import '@locales/i18n';
 import separateAudioFromVideo from '@utils/separate_audio_from_video';
 import EditorContext, {
@@ -11,11 +10,15 @@ import EditorContext, {
   defaultContextState,
   EditorContextAction
 } from './context';
+import TitleBar from '@components/title-bar';
+import MediaGroup from '@components/media-group';
+import Menu from '@components/title-bar/menu';
 
 
 const Main = styled.main({
+  flexGrow: 1,
+  flexShrink: 0,
   width: '100vw',
-  height: '100vh',
   overflow: 'hidden',
   display: 'flex',
   flexDirection: 'column',
@@ -24,7 +27,7 @@ const Main = styled.main({
 });
 
 const App: React.FC = React.memo(function App () {
-  const [container, setContainer] = React.useState<HTMLElement>();
+  const containerRef = React.useRef<HTMLElement>();
 
   const [contextState, contextDispatch] = React.useReducer(
     reducer,
@@ -32,6 +35,10 @@ const App: React.FC = React.memo(function App () {
   );
 
   const context = React.createContext<EditorContext>(defaultContextState);
+  const menu = React.useMemo(
+    () => new Menu(() => contextState, contextDispatch),
+    [contextState, contextDispatch]
+  );
 
   let runningSeparatingRef = React.useRef(false);
 
@@ -59,19 +66,22 @@ const App: React.FC = React.memo(function App () {
   }, [runningSeparatingRef.current, contextState.workspace]);
 
   return (
-    <Main
-      ref={e => container || (e && setContainer(e))}
+    <context.Provider
+      value={contextState}
     >
-      <context.Provider
-        value={contextState}
+      <TitleBar
+        menu={menu}
+      />
+      <Main
+        ref={e => e && (containerRef.current = e)}
       >
         <MediaGroup
           context={context}
           dispatch={contextDispatch}
-          container={container}
+          container={containerRef.current}
         />
-      </context.Provider>
-    </Main>
+      </Main>
+    </context.Provider>
   );
 });
 

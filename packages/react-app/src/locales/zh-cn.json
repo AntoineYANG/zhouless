@@ -1,3 +1,28 @@
 {
-  "open_video": "打开视频"
+  "open_video": "打开视频",
+  "audio_parse_loading": "正在解析音频",
+  "menu": {
+    "project": {
+      "_": "项目",
+      "open_video": "打开视频",
+      "save_project": "保存项目",
+      "save_project_as": "项目另存为...",
+      "close_project": "关闭项目",
+      "refresh": "重新启动",
+      "exit": "退出"
+    },
+    "appearance": {
+      "_": "个性化",
+      "dark_mode": "夜间模式",
+      "language": {
+        "_": "语言"
+      }
+    }
+  },
+  "control": {
+    "fullscreen": "全屏",
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "close": "关闭"
+  }
 }

@@ -13,9 +13,19 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   line-height: 1.6em;
+  letter-spacing: 0.8px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #000;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: '#101216';
+    color: '#eee';
+  }
+
+  @media (prefers-color-scheme: light) {
+    background-color: #eee;
+    color: '#222';
+  }
 }
 
 #root {
@@ -24,4 +34,10 @@ body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+* {
+  transition: color 200ms, background-color 200ms;
 }

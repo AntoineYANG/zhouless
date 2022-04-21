@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 16:38:33 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 22:11:40
+ * @Last Modified time: 2022-04-21 04:32:41
  */
 
 import React from 'react';
@@ -16,7 +16,12 @@ const SIZE = 20;
 const ResizeBarElement = styled.div<{ direction: 'ew' | 'ns' }>(({ direction }) => ({
   position: 'absolute',
   backgroundColor: '#fff2',
-  backdropFilter: 'brightness(1.25) blur(1.5px)',
+  '@media (prefers-color-scheme: dark)': {
+    backdropFilter: 'brightness(1.25) blur(1.5px)',
+  },
+  '@media (prefers-color-scheme: light)': {
+    backdropFilter: 'brightness(0.75) blur(1.5px)',
+  },
   ...(direction === 'ew' ? {
     // horizontal -> at right
     top: 0,
@@ -69,6 +74,8 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
   debounceSpan = 20
 }) {
   const [element, setElement] = React.useState<HTMLDivElement>();
+  const [targetCurPos, setTargetCurPos] = React.useState(0);
+  const [range, setRange] = React.useState<[number, number]>([0, 0]);
 
   const callback = React.useCallback(
     debounce(onResize, debounceSpan),
@@ -87,16 +94,36 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
     );
   }, [element]);
 
+  React.useEffect(() => {
+    if (!container || !target) {
+      return;
+    }
+
+    const update = () => {
+      const containerSize = container[direction === 'ns' ? 'clientHeight' : 'clientWidth'];
+      const targetPos = target[direction === 'ns' ? 'offsetTop' : 'offsetLeft'];
+      const minSizePx = targetPos + containerSize * min;
+      const maxSizePx = targetPos + containerSize * max;
+      setTargetCurPos(targetPos);
+      setRange([minSizePx, maxSizePx]);
+    };
+
+    update();
+
+    const observer = new ResizeObserver(update);
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [container, target, setTargetCurPos, setRange, direction, min, max]);
+
   // 设置监听逻辑
   React.useEffect(() => {
     if (!element || !target || !container) {
       return;
     }
-
-    const targetPos = target[direction === 'ns' ? 'offsetTop' : 'offsetLeft'];
-    const containerSize = container[direction === 'ns' ? 'clientHeight' : 'clientWidth'];
-    const minSizePx = targetPos + containerSize * min;
-    const maxSizePx = targetPos + containerSize * max;
 
     let resizing = false;
     let offset = NaN;
@@ -137,19 +164,19 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
       curPos = absPos;
 
       const validPos = Math.min(
-        maxSizePx,
+        range[1],
         Math.max(
-          minSizePx,
+          range[0],
           absPos
         )
       );
 
-      const px = (validPos - offset) - targetPos;
+      const px = (validPos - offset) - targetCurPos;
 
       callback(px);
     };
 
-    const handleResizeEnd = (e: MouseEvent) => {
+    const handleResizeEnd = () => {
       if (resizing) {
         resizing = false;
         thisElement?.classList.remove('active');
@@ -165,7 +192,14 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
       document.body.removeEventListener('mousemove', handleResizing);
       document.body.removeEventListener('mouseup', handleResizeEnd);
     };
-  }, [element, target, container, min, max, debounceSpan, callback]);
+  }, [
+    element,
+    target,
+    container,
+    range,
+    targetCurPos,
+    callback
+  ]);
 
   return (
     <ResizeBarElement

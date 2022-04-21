@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 19:28:40 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-13 21:43:29
+ * @Last Modified time: 2022-04-21 04:37:16
  */
 
 import React from 'react';
@@ -18,7 +18,12 @@ const OpenVideoButtonElement = styled.div({
   flexShrink: 0,
   width: '14.5vh',
   height: 'calc(12vh + 18%)',
-  color: '#999',
+  '@media (prefers-color-scheme: dark)': {
+    color: '#999',
+  },
+  '@media (prefers-color-scheme: light)': {
+    color: '#555',
+  },
   border: '1px solid',
   userSelect: 'none',
   cursor: 'pointer',
@@ -31,7 +36,13 @@ const OpenVideoButtonElement = styled.div({
     flexGrow: 0,
     flexShrink: 0,
     pointerEvents: 'none',
-  }
+  },
+  '&:focus, &:hover': {
+    borderRadius: '12px',
+    backgroundColor: '#8885',
+    transform: 'scale(1.05)',
+  },
+  transition: 'color 200ms, border-radius 200ms, transform 200ms'
 });
 
 const ButtonSvg = styled.svg({
@@ -40,7 +51,12 @@ const ButtonSvg = styled.svg({
 });
 
 const ButtonSvgPath = styled.path({
-  stroke: '#999',
+  '@media (prefers-color-scheme: dark)': {
+    stroke: '#999',
+  },
+  '@media (prefers-color-scheme: light)': {
+    stroke: '#555',
+  },
   strokeWidth: '1px',
   fill: 'none'
 });

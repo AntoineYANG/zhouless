@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 23:23:53 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 23:58:54
+ * @Last Modified time: 2022-04-21 18:27:59
  */
 
 import React from 'react';
@@ -10,7 +10,7 @@ import styled from 'styled-components';
 
 import type EditorContext from '@views/context';
 import type { Playable } from '@components/media-group';
-import parseWav, { drawWavData } from '@utils/parse_wav';
+import { useTranslation } from 'react-i18next';
 
 
 const WaveViewElement = styled.div({
@@ -29,24 +29,22 @@ const WaveContainer = styled.div({
   overflow: 'scroll hidden',
 });
 
-const Wave = styled.div<{ dataUrl: string; w: number }>(({ dataUrl, w }) => ({
+const Wave = styled.div<{ dataUrl: string }>(({ dataUrl }) => ({
   flexGrow: 0,
   flexShrink: 0,
   backgroundImage: `url(${dataUrl})`,
-  width: w,
   height: '100%',
   backgroundSize: '100% 128px',
 }));
 
-const WaveProgress = styled.div<{ curT: number; duration: number; w: number }>(({ curT, duration, w }) => ({
+const WaveProgress = styled.div({
   position: 'absolute',
   top: 0,
   left: 0,
-  width: `${(curT / duration * w).toFixed(3)}px`,
   height: '100%',
   borderRight: '1px solid #fffa',
   backdropFilter: 'brightness(0.6)',
-}));
+});
 
 export interface WaveViewProps {
   context: React.Context<EditorContext>;
@@ -62,9 +60,10 @@ const WaveView: React.FC<WaveViewProps> = ({
   context,
   subscribe,
   unsubscribe,
-  setTime
+  setTime,
 }) => {
   const [curTime, setCurTime] = React.useState<number>(0);
+  const { t } = useTranslation();
 
   React.useEffect(() => {
     let video = document.querySelector('video');
@@ -111,49 +110,7 @@ const WaveView: React.FC<WaveViewProps> = ({
   }, [subscribe, unsubscribe, setCurTime]);
 
   const { workspace } = React.useContext(context);
-  const [wave, setWave] = React.useState<{
-    dataUrl: string;
-    width: number;
-  } | null>(null);
-
-  const [failed, setFailed] = React.useState(false);
-
-  React.useEffect(() => {
-    setWave(null);
-    setFailed(false);
-  }, [workspace?.origin.audio]);
-
-  React.useEffect(() => {
-    if (!wave && workspace?.origin.audio && typeof workspace.origin.duration === 'number') {
-      parseWav(workspace.origin.audio.data).then(async d => {
-        if (d) {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-
-          canvas.height = 400;
-          canvas.style.position = 'fixed';
-          canvas.style.left = '0';
-          canvas.style.top = '104vh';
-          canvas.width = d.duration * 20;
-
-          document.body.appendChild(canvas);
-
-          await drawWavData(ctx, d.channels, canvas.width);
-
-          setWave({
-            dataUrl: canvas.toDataURL(),
-            width: canvas.width
-          });
-
-          canvas.remove();
-        }
-      });
-
-      return;
-    }
-
-    return;
-  }, [setTime, workspace?.origin.duration, workspace?.origin.audio?.data, wave, setWave]);
+  const wave = workspace?.origin.audio?.wave;
 
   return (
     <WaveViewElement
@@ -165,20 +122,24 @@ const WaveView: React.FC<WaveViewProps> = ({
       {/* TODO: i18n */}
       <WaveContainer>
         {
-          failed ? 'failed' : (
+          wave === 'failed' ? 'failed' : (
             wave ? (
               <>
                 <Wave
                   dataUrl={wave.dataUrl}
-                  w={wave.width}
+                  style={{
+                    width: wave.width
+                  }}
                 />
                 <WaveProgress
-                  curT={curTime}
-                  duration={workspace?.origin.duration ?? 1}
-                  w={wave.width}
+                  style={{
+                    width: `${
+                      (curTime / (workspace?.origin.duration ?? 1) * wave.width).toFixed(3)
+                    }px`
+                  }}
                 />
               </>
-            ) : 'loading...'
+            ) : t('audio_parse_loading')
           )
         }
       </WaveContainer>

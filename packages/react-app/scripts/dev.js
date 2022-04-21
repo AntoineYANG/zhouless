@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-01-25 21:31:22 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-03-20 16:21:07
+ * @Last Modified time: 2022-04-20 22:38:29
  */
 'use strict';
 
@@ -79,11 +79,17 @@ const setup = async () => {
   };
 };
 
-/** @param {{devServer: import('webpack-dev-server')}} options */
-const watch = ({
-  url,
-  devServer
-}) => new Promise(async resolve => {
+/**
+ * @param {{devServer: import('webpack-dev-server')}} options
+ * @param {(url: string) => any} [cb=openBrowser]
+ */
+const watch = (
+  {
+    url,
+    devServer
+  },
+  cb = openBrowser
+) => new Promise(async resolve => {
   await chalk.then(_chalk => {
     console.log(`Dev server will be activate on ${
       _chalk.cyan.bold(url)
@@ -93,7 +99,7 @@ const watch = ({
   // launch
   await devServer.start();
 
-  openBrowser(url);
+  cb(url);
     
   ['SIGINT', 'SIGTERM'].forEach(sig => {
     process.on(sig, () => {
@@ -111,10 +117,14 @@ const watch = ({
   }
 });
 
-const webpackServeDev = async () => {
+/**
+ * @param {(url: string) => void} [cb]
+ * @returns {Promise<number>}
+ */
+const webpackServeDev = async (cb) => {
   const options = await setup();
 
-  return await watch(options);
+  return await watch(options, cb);
 };
 
 

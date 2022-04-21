@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 18:36:40 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 23:35:16
+ * @Last Modified time: 2022-04-21 18:20:00
  */
 
 import React from 'react';
@@ -24,7 +24,12 @@ const VideoViewElement = styled.article({
   position: 'relative',
   flexGrow: 0,
   flexShrink: 0,
-  backgroundColor: '#333',
+  '@media (prefers-color-scheme: dark)': {
+    backgroundColor: '#333',
+  },
+  '@media (prefers-color-scheme: light)': {
+    backgroundColor: '#ddd',
+  },
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -38,6 +43,10 @@ export interface VideoViewProps {
   context: React.Context<EditorContext>;
   openVideo: (video: File) => void;
   setVideoDuration: (duration: number) => void;
+  setAudioWave: (wave: {
+    dataUrl: string;
+    width: number;
+  }) => void;
   subscribe: (item: Playable) => void;
   unsubscribe: (item: Playable) => void;
 }
@@ -50,6 +59,7 @@ const VideoView: React.FC<VideoViewProps> = ({
   context,
   openVideo,
   setVideoDuration,
+  setAudioWave,
   subscribe,
   unsubscribe,
 }) => {
@@ -80,11 +90,13 @@ const VideoView: React.FC<VideoViewProps> = ({
       {
         contextState.workspace ? (
           <VideoPlayer
+            context={context}
             url={contextState.workspace.origin.url}
             container={container}
             subscribe={subscribe}
             unsubscribe={unsubscribe}
             onReady={handleVideoReady}
+            setAudioWave={setAudioWave}
           />
         ) : (
           <OpenVideoButton

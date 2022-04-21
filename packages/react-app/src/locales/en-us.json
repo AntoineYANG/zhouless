@@ -1,3 +1,28 @@
 {
-  "open_video": "open video"
+  "open_video": "open video",
+  "audio_parse_loading": "waiting for audio data being parsed...",
+  "menu": {
+    "project": {
+      "_": "Project",
+      "open_video": "Open Video",
+      "save_project": "Save Project",
+      "save_project_as": "Save Project As...",
+      "close_project": "Close Project",
+      "refresh": "Reopen Editor",
+      "exit": "Exit"
+    },
+    "appearance": {
+      "_": "Appearance",
+      "dark_mode": "Dark Mode",
+      "language": {
+        "_": "Language"
+      }
+    }
+  },
+  "control": {
+    "fullscreen": "full screen",
+    "minimize": "minimize",
+    "maximize": "maximize",
+    "close": "close"
+  }
 }

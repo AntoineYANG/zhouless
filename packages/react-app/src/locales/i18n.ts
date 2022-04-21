@@ -37,4 +37,14 @@ i18n.use(LanguageDetector)
     }
   });
 
+export const setLanguage = async (lang: 'en' | 'zh' | 'ja') => {
+  await i18n.changeLanguage(lang);
+  
+  return;
+};
+
+export const getLanguage = () => {
+  return i18n.language;
+}
+
 export default i18n;

@@ -2,40 +2,50 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 21:48:28 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 23:38:48
+ * @Last Modified time: 2022-04-21 18:36:30
  */
 
 import React from 'react';
 import styled from 'styled-components';
 
+import type EditorContext from '@views/context';
 import type { Playable } from '@components/media-group';
+import parseWav, { drawWavData } from '@utils/parse_wav';
 
 
 const VideoPlayerElement = styled.video({
   maxWidth: '98%',
   maxHeight: '98%',
   outline: 'none',
-  transition: 'width 100ms, height 100ms, opacity 100ms',
 });
 
 export interface VideoPlayerProps {
+  context: React.Context<EditorContext>;
   container: HTMLElement | undefined;
   url: string;
   subscribe: (item: Playable) => void;
   unsubscribe: (item: Playable) => void;
   onReady: (e: React.SyntheticEvent<HTMLVideoElement, Event>) => void;
+  setAudioWave: (wave: {
+    dataUrl: string;
+    width: number;
+  }) => void;
 }
 
 /**
  * 视频元素容器.
  */
 const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer ({
+  context,
   container,
   url,
   subscribe,
   unsubscribe,
   onReady,
+  setAudioWave,
 }) {
+  const { workspace: { origin } = { origin: null } } = React.useContext(context);
+
   const [{ videoWidth, videoHeight }, setVideoSize] = React.useState({
     videoWidth: 0,
     videoHeight: 0
@@ -52,6 +62,38 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
     });
     onReady(e);
   }, [videoWidth, videoHeight, setVideoSize, onReady]);
+
+  React.useEffect(() => {
+    if (!origin?.audio?.wave && origin?.audio && typeof origin.duration === 'number') {
+      parseWav(origin.audio.data).then(async d => {
+        if (d) {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+          canvas.height = 400;
+          canvas.style.position = 'fixed';
+          canvas.style.left = '0';
+          canvas.style.top = '104vh';
+          canvas.width = d.duration * 20;
+
+          document.body.appendChild(canvas);
+
+          await drawWavData(ctx, d.channels, canvas.width);
+
+          setAudioWave({
+            dataUrl: canvas.toDataURL(),
+            width: canvas.width
+          });
+
+          canvas.remove();
+        }
+      });
+
+      return;
+    }
+
+    return;
+  }, [origin?.audio, origin?.duration, setAudioWave]);
 
   const [{ maxWidth, maxHeight }, setMaxSize] = React.useState({
     maxWidth: container?.clientWidth ?? 0,
@@ -148,6 +190,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
     };
   }, [player]);
 
+  const shouldDisplay = React.useMemo(() => {
+    return w && h && origin?.audio?.wave;
+  }, [w, h, origin?.audio?.wave]);
+
   return (
     <VideoPlayerElement
       src={url}
@@ -157,13 +203,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = React.memo(function VideoPlayer 
       // muted
       ref={e => e && setPlayer(e)}
       style={
-        w && h ? {
+        shouldDisplay ? {
           width: `${w}px`,
           height: `${h}px`
         } : {
-          width: '80%',
-          height: '80%',
-          opacity: 0.5
+          width: '0',
+          height: '0'
         }
       }
     />

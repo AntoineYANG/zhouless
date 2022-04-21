@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-15 21:45:15 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 23:36:08
+ * @Last Modified time: 2022-04-21 20:48:34
  */
 
 export default interface EditorContext {
@@ -17,6 +17,10 @@ export default interface EditorContext {
       audio?: {
         url: string;
         data: ArrayBuffer;
+        wave?: {
+          dataUrl: string;
+          width: number;
+        } | 'failed';
       } | undefined;
     };
   } | undefined;
@@ -47,10 +51,21 @@ export type SetOriginAudioAction = {
   };
 };
 
+export type SetAudioWaveAction = {
+  type: 'SET_AUDIO_WAVE';
+  payload: {
+    wave: {
+      dataUrl: string;
+      width: number;
+    } | 'failed';
+  };
+};
+
 export type EditorContextAction = (
   | OpenVideoAction
   | SetOriginDurationAction
   | SetOriginAudioAction
+  | SetAudioWaveAction
 );
 
 export type EditorContextDispatcher = (action: EditorContextAction) => void;
@@ -111,6 +126,26 @@ export const reducer = ((state: Readonly<EditorContext>, action: EditorContextAc
               audio: {
                 url,
                 data: action.payload.audio
+              }
+            }
+          }
+        };
+      }
+
+      return state;
+    }
+
+    case 'SET_AUDIO_WAVE': {
+      if (state.workspace?.origin.audio) {
+        return {
+          ...state,
+          workspace: {
+            ...state.workspace,
+            origin: {
+              ...state.workspace.origin,
+              audio: {
+                ...state.workspace.origin.audio,
+                wave: action.payload.wave
               }
             }
           }

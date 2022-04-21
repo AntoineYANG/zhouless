@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-14 23:01:26 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 23:45:16
+ * @Last Modified time: 2022-04-21 18:32:36
  */
 
 const FREQ_SPANS = 64;
@@ -57,7 +57,7 @@ const decodeWav = async (
     buffer.duration * FRAME_PER_SEC
   );
 
-  const frameToTime = (frameId: number) => frameId * buffer.duration / size / sampleSize;
+  // const frameToTime = (frameId: number) => frameId * buffer.duration / size / sampleSize;
 
   const sampleSize = buffer.length / size;
   const sampleStep = ((sampleSize / 10) | 1) || 1; // int
@@ -73,33 +73,33 @@ const decodeWav = async (
       const start = Math.floor(i * sampleSize);
       const end = Math.floor(start + sampleSize);
       const nFrames = end - start;
-      const center = Math.round((start + end - sampleStep) / 2);
+      // const center = Math.round((start + end - sampleStep) / 2);
 
       // 音频片段源节点，只能调用一次 start()，所以需要在循环内创建，代价低
       const source = ac.createBufferSource();
       source.buffer = ac.createBuffer(1, nFrames, ac.sampleRate);
       source.buffer.copyToChannel(channel.subarray(start, end), 0);
-      // 分析结点
+      // // 分析结点
       const analyser = ac.createAnalyser();
       // analyser.fftSize = 512;
       analyser.minDecibels = -85;
       analyser.maxDecibels = -30;
-      // @see http://www.qiutianaimeili.com/html/page/2018/02/t9xhq1gd8c.html
-      // 默认 0.8
-      analyser.smoothingTimeConstant = 0.85;
-      // analyser.connect(ac.destination); // FIXME: 不用播放
-      source.connect(analyser);
+      // // @see http://www.qiutianaimeili.com/html/page/2018/02/t9xhq1gd8c.html
+      // // 默认 0.8
+      // analyser.smoothingTimeConstant = 0.85;
+      // // analyser.connect(ac.destination); // FIXME: 不用播放
+      // source.connect(analyser);
 
-      source.start(0);
+      // source.start(0);
       
       const frameData: WavFrameData = {
         peak: [0, 0],
         frequency: new Uint8Array(analyser.frequencyBinCount)
       };
 
-      // 统计声强
-      const _t = new Uint8Array(analyser.fftSize);
-      analyser.getByteTimeDomainData(_t);
+      // // 统计声强
+      // const _t = new Uint8Array(analyser.fftSize);
+      // analyser.getByteTimeDomainData(_t);
 
       const c = source.buffer.getChannelData(0);
 
@@ -122,42 +122,42 @@ const decodeWav = async (
 
       // 统计频率
       
-      analyser.getByteFrequencyData(frameData.frequency);
-      (window as any).a = () => {
-        const d = new Uint8Array(analyser.frequencyBinCount);
+      // analyser.getByteFrequencyData(frameData.frequency);
+      // (window as any).a = () => {
+      //   const d = new Uint8Array(analyser.frequencyBinCount);
       
-        analyser.getByteFrequencyData(d);
+      //   analyser.getByteFrequencyData(d);
 
-        return d;
-      }
+      //   return d;
+      // }
 
-      if (cid === 0 && i % 500 === 0) {
-        console.log(
-          i,
-          nFrames,
-          _t.length,
-          frameData.peak,
-          (() => {
-            const d: Record<number, number> = {};
-            _t.forEach(e => {
-              d[e] = (d[e] ?? 0) + 1;
-            });
+      // if (cid === 0 && i % 500 === 0) {
+      //   console.log(
+      //     i,
+      //     nFrames,
+      //     _t.length,
+      //     frameData.peak,
+      //     (() => {
+      //       const d: Record<number, number> = {};
+      //       _t.forEach(e => {
+      //         d[e] = (d[e] ?? 0) + 1;
+      //       });
 
-            return d;
-          })(),
-          frameData.frequency.length,
-          (() => {
-            const d: Record<number, number> = {};
-            frameData.frequency.forEach(e => {
-              d[e] = (d[e] ?? 0) + 1;
-            });
+      //       return d;
+      //     })(),
+      //     frameData.frequency.length,
+      //     (() => {
+      //       const d: Record<number, number> = {};
+      //       frameData.frequency.forEach(e => {
+      //         d[e] = (d[e] ?? 0) + 1;
+      //       });
 
-            return d;
-          })(),
-        );
-      }
+      //       return d;
+      //     })(),
+      //   );
+      // }
       
-      source.stop();
+      // source.stop();
 
       // 记录当前帧
 
@@ -289,16 +289,16 @@ export const drawWavData = async (
       context.fillStyle = WAVE_COLORS[i % 2]!;
       drawPeaks(context, width, channel.map(c => c.peak), length);
 
-      // 绘制频谱
-      if (i === 0) {
-        // FIXME:
-        context.fillStyle = '#000';
-        context.fillRect(0, 0, width, FREQ_HEIGHT);
-        context.fillStyle = '#eee';
-        tasks.push(
-          drawFreq(context, width, channel.map(c => c.frequency), length)
-        );
-      }
+      // // 绘制频谱
+      // if (i === 0) {
+      //   // FIXME:
+      //   context.fillStyle = '#000';
+      //   context.fillRect(0, 0, width, FREQ_HEIGHT);
+      //   context.fillStyle = '#eee';
+      //   tasks.push(
+      //     drawFreq(context, width, channel.map(c => c.frequency), length)
+      //   );
+      // }
     });
 
     Promise.all(tasks).then(resolve);

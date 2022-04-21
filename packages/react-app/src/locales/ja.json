@@ -1,3 +1,28 @@
 {
-  "open_video": "動画を導入"
+  "open_video": "動画を導入",
+  "audio_parse_loading": "動画音声解析中......",
+  "menu": {
+    "project": {
+      "_": "プロジェクト",
+      "open_video": "動画を導入",
+      "save_project": "Save Project",
+      "save_project_as": "Save Project As...",
+      "close_project": "Close Project",
+      "refresh": "再起動",
+      "exit": "Exit"
+    },
+    "appearance": {
+      "_": "Appearance",
+      "dark_mode": "Dark Mode",
+      "language": {
+        "_": "言語"
+      }
+    }
+  },
+  "control": {
+    "fullscreen": "full screen",
+    "minimize": "minimize",
+    "maximize": "maximize",
+    "close": "close"
+  }
 }

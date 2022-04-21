@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 19:00:22 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 22:54:02
+ * @Last Modified time: 2022-04-21 18:11:42
  */
 
 import React from 'react';
@@ -10,7 +10,7 @@ import styled from 'styled-components';
 
 import type EditorContext from '@views/context';
 import type { Playable } from '@components/media-group';
-import AudioPlayer from './audio-player';
+// import AudioPlayer from './audio-player';
 import WaveView from './wave-view';
 
 
@@ -22,7 +22,12 @@ const AudioViewElement = styled.article({
   justifyContent: 'center',
   padding: '12px',
   overflow: 'hidden',
-  backgroundColor: '#282828',
+  '@media (prefers-color-scheme: dark)': {
+    backgroundColor: '#282828',
+  },
+  '@media (prefers-color-scheme: light)': {
+    backgroundColor: '#d6d6d6',
+  },
 });
 
 export interface AudioViewProps {
@@ -36,7 +41,7 @@ const AudioView: React.FC<AudioViewProps> = ({
   context,
   subscribe,
   unsubscribe,
-  setTime
+  setTime,
 }) => {
   const { workspace } = React.useContext(context);
 

@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 16:38:33 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-15 23:35:46
+ * @Last Modified time: 2022-04-21 18:11:44
  */
 
 import React from 'react';
@@ -30,8 +30,13 @@ const MediaGroupElement = styled.section({
   alignItems: 'stretch',
   justifyContent: 'stretch',
   overflow: 'hidden',
-  backgroundColor: '#222',
-  transition: 'height 10ms',
+  '@media (prefers-color-scheme: dark)': {
+    backgroundColor: '#222',
+  },
+  '@media (prefers-color-scheme: light)': {
+    backgroundColor: '#eee',
+  },
+  transition: 'height 10ms, background-color 200ms',
 });
 
 export interface MediaGroupProps {
@@ -83,6 +88,18 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
     });
   }, [dispatch]);
 
+  const setAudioWave = React.useCallback((wave: {
+    dataUrl: string;
+    width: number;
+  }) => {
+    dispatch({
+      type: 'SET_AUDIO_WAVE',
+      payload: {
+        wave
+      }
+    });
+  }, [dispatch]);
+
   const playableListRef = React.useRef<Playable[]>([]);
 
   const subscribe = React.useCallback((item: Playable) => {
@@ -125,7 +142,7 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
 
   return (
     <MediaGroupElement
-      ref={e => groupElement || (e && setGroupElement(e))}
+      ref={e => e && setGroupElement(e)}
       style={{
         height: `${height}px`
       }}
@@ -136,6 +153,7 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
         context={context}
         openVideo={openVideo}
         setVideoDuration={setVideoDuration}
+        setAudioWave={setAudioWave}
         subscribe={subscribe}
         unsubscribe={unsubscribe}
       />
@@ -146,7 +164,7 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
         setTime={setTime}
       />
       <ResizeBar
-        container={container}
+        container={groupElement?.parentElement ?? container}
         target={groupElement}
         min={MIN_HEIGHT}
         max={MAX_HEIGHT}
