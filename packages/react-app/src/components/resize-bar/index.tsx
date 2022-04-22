@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 16:38:33 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 04:32:41
+ * @Last Modified time: 2022-04-22 21:24:00
  */
 
 import React from 'react';
@@ -59,6 +59,7 @@ export interface ResizeBarProps {
   onResize: (px: number) => void;
   /** 触发回调的时长，单位 ms，默认为 20 */
   debounceSpan?: number;
+  style?: React.CSSProperties;
 }
 
 /**
@@ -71,7 +72,8 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
   min = 0.25,
   max = 1,
   onResize,
-  debounceSpan = 20
+  debounceSpan = 20,
+  style,
 }) {
   const [element, setElement] = React.useState<HTMLDivElement>();
   const [targetCurPos, setTargetCurPos] = React.useState(0);
@@ -94,10 +96,21 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
     );
   }, [element]);
 
+  // 监听窗口初始化和容器大小改变，避免初始/当前大小超出限制
   React.useEffect(() => {
     if (!container || !target) {
       return;
     }
+
+    const handleResizing = (minSizePx: number, maxSizePx: number) => {
+      const curSize = target[direction === 'ns' ? 'clientHeight' : 'clientWidth'];
+
+      if (curSize > maxSizePx) {
+        callback(maxSizePx);
+      } else if (curSize < minSizePx) {
+        callback(minSizePx);
+      }
+    };
 
     const update = () => {
       const containerSize = container[direction === 'ns' ? 'clientHeight' : 'clientWidth'];
@@ -106,6 +119,7 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
       const maxSizePx = targetPos + containerSize * max;
       setTargetCurPos(targetPos);
       setRange([minSizePx, maxSizePx]);
+      handleResizing(minSizePx, maxSizePx);
     };
 
     update();
@@ -212,8 +226,8 @@ const ResizeBar: React.FC<ResizeBarProps> = React.memo(function ResizeBar ({
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
       onTouchEnd={e => e.stopPropagation()}
-    >
-    </ResizeBarElement>
+      style={style}
+    />
   );
 });
 

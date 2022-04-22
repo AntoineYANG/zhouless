@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 16:38:33 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 18:11:44
+ * @Last Modified time: 2022-04-22 22:29:40
  */
 
 import React from 'react';
@@ -14,29 +14,40 @@ import AudioView from '@components/audio-view';
 import type EditorContext from '@views/context';
 import type { EditorContextDispatcher } from '@views/context';
 import useLocalStorage from '@utils/use_local_storage';
+import PlayControl from '@components/play-control';
 
 
 const MIN_HEIGHT = 0.3;
 const MAX_HEIGHT = 1;
 
-const MediaGroupElement = styled.section({
+const MediaGroupElement = styled.div({
   position: 'relative',
   flexGrow: 0,
   flexShrink: 0,
   minHeight: `${(100 * MIN_HEIGHT).toFixed(0)}vh`,
   maxHeight: `${(100 * MAX_HEIGHT).toFixed(0)}vh`,
   display: 'flex',
-  flexDirection: 'row',
+  flexDirection: 'column',
   alignItems: 'stretch',
   justifyContent: 'stretch',
   overflow: 'hidden',
   '@media (prefers-color-scheme: dark)': {
-    backgroundColor: '#222',
+    backgroundColor: '#2e2e2e',
   },
   '@media (prefers-color-scheme: light)': {
-    backgroundColor: '#eee',
+    backgroundColor: '#ccc',
   },
   transition: 'height 10ms, background-color 200ms',
+});
+
+const MediaGroupContainer = styled.section({
+  flexGrow: 1,
+  flexShrink: 0,
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'stretch',
+  justifyContent: 'stretch',
+  overflow: 'hidden',
 });
 
 export interface MediaGroupProps {
@@ -60,6 +71,8 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
   dispatch,
   container
 }) {
+  const { workspace } = React.useContext(context);
+
   const [groupElement, setGroupElement] = React.useState<HTMLElement>();
   const [height, setHeight] = useLocalStorage(
     'media_group_height',
@@ -112,33 +125,25 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
 
   let isPlayingRef = React.useRef(false);
 
-  const playOrPause = React.useCallback(() => {
-    if (isPlayingRef.current === true) {
-      playableListRef.current.forEach(item => item.pause());
-    } else {
+  const play = React.useCallback(() => {
+    if (isPlayingRef.current === false) {
       playableListRef.current.forEach(item => item.play());
     }
 
-    isPlayingRef.current = !isPlayingRef.current;
+    isPlayingRef.current = true;
+  }, [isPlayingRef]);
+
+  const pause = React.useCallback(() => {
+    if (isPlayingRef.current === true) {
+      playableListRef.current.forEach(item => item.pause());
+    }
+
+    isPlayingRef.current = false;
   }, [isPlayingRef]);
   
   const setTime = React.useCallback((time: number) => {
     playableListRef.current.forEach(item => item.setTime(time));
   }, []);
-
-  React.useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === ' ') {
-        playOrPause();
-      }
-    };
-
-    document.body.addEventListener('keypress', handler);
-
-    return () => {
-      document.body.removeEventListener('keypress', handler);
-    };
-  }, [playOrPause]);
 
   return (
     <MediaGroupElement
@@ -146,21 +151,32 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
       style={{
         height: `${height}px`
       }}
-      onClick={playOrPause}
     >
-      <VideoView
-        parent={groupElement}
+      <MediaGroupContainer>
+        <VideoView
+          parent={groupElement}
+          context={context}
+          openVideo={openVideo}
+          setVideoDuration={setVideoDuration}
+          setAudioWave={setAudioWave}
+          subscribe={subscribe}
+          unsubscribe={unsubscribe}
+        />
+        <AudioView
+          context={context}
+          subscribe={subscribe}
+          unsubscribe={unsubscribe}
+          setTime={setTime}
+        />
+      </MediaGroupContainer>
+      <PlayControl
         context={context}
-        openVideo={openVideo}
-        setVideoDuration={setVideoDuration}
-        setAudioWave={setAudioWave}
         subscribe={subscribe}
         unsubscribe={unsubscribe}
-      />
-      <AudioView
-        context={context}
-        subscribe={subscribe}
-        unsubscribe={unsubscribe}
+        duration={workspace?.origin.duration ?? NaN}
+        isPlaying={() => isPlayingRef.current}
+        play={play}
+        pause={pause}
         setTime={setTime}
       />
       <ResizeBar

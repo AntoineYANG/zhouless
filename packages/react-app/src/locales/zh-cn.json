@@ -5,6 +5,7 @@
     "project": {
       "_": "项目",
       "open_video": "打开视频",
+      "open_project": "打开项目",
       "save_project": "保存项目",
       "save_project_as": "项目另存为...",
       "close_project": "关闭项目",
@@ -24,5 +25,14 @@
     "minimize": "最小化",
     "maximize": "最大化",
     "close": "关闭"
-  }
+  },
+  "control_bar": {
+    "play": "播放",
+    "pause": "暂停",
+    "append_subtitle": "添加一条字幕，起止时间取决于按下和松开按钮的时间"
+  },
+  "empty_text": "(点击编辑文本)",
+  "begin_time": "开始时间",
+  "end_time": "结束时间",
+  "subtitle_text": "文本"
 }

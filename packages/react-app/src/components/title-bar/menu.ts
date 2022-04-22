@@ -2,13 +2,13 @@
  * @Author: Kanata You 
  * @Date: 2022-04-20 23:35:27 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 23:46:49
+ * @Last Modified time: 2022-04-22 21:49:27
  */
 
 import { getLanguage, setLanguage } from '@locales/i18n';
 import asyncEvent from '@utils/async_event';
 import openFile from '@utils/open_file';
-import safeClose, { safeReload, safeWait } from '@utils/safe-close';
+import safeClose, { safeReload, safeWait } from '@utils/safe_close';
 import type EditorContext from '@views/context';
 import type { EditorContextDispatcher } from '@views/context';
 import type { MenuItemProps, MultipleMenuItemProps } from './menu-item';

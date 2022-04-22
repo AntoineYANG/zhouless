@@ -2,9 +2,10 @@
  * @Author: Kanata You 
  * @Date: 2022-04-20 23:29:32 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 23:34:02
+ * @Last Modified time: 2022-04-22 17:51:14
  */
 
+import ThinnerKatakana from '@components/thinner-katakana';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
@@ -36,7 +37,7 @@ const MenuItemElement = styled.div<{ expanded: boolean; disabled: boolean }>(({ 
     color: disabled ? '#888' : '#222',
   },
   [`&:hover, &:focus${expanded ? ', &' : ''}`]: disabled ? {} : {
-    backgroundColor: '#6666',
+    backgroundColor: '#6664',
     '@media (prefers-color-scheme: dark)': {
       color: '#eee',
     },
@@ -65,12 +66,12 @@ const MenuGroupElement = styled.div<{ deep: boolean }>(({ deep }) => ({
   zIndex: 1,
   padding: '0.32em 0',
   '@media (prefers-color-scheme: dark)': {
-    backgroundColor: deep ? '#0006' : '#0001',
+    backgroundColor: deep ? '#0006' : '#0004',
     backdropFilter: 'brightness(0.75) blur(6px)',
     boxShadow: '2px 3px 2px 0px #0008',
   },
   '@media (prefers-color-scheme: light)': {
-    backgroundColor: deep ? '#fff8' : '#fff1',
+    backgroundColor: deep ? '#fff8' : '#fff4',
     backdropFilter: 'brightness(1.5) blur(6px)',
     boxShadow: '2px 3px 2px 0px #0002',
   },
@@ -252,15 +253,17 @@ const MenuGroup: React.FC<
                     {(item as MenuItemProps).checked?.() ? '\u2713' : ''}
                   </label>
                   <label className="label" >
-                    {
-                      item.label.match(/^\$/)
-                        ? item.label.replace(/^\$/, '')
-                        : (
-                          (item as MultipleMenuItemProps).subMenu
-                            ? t(`${label}._`)
-                            : t(label)
-                        )
-                    }
+                    <ThinnerKatakana>
+                      {
+                        item.label.match(/^\$/)
+                          ? item.label.replace(/^\$/, '')
+                          : (
+                            (item as MultipleMenuItemProps).subMenu
+                              ? t(`${label}._`)
+                              : t(label)
+                          )
+                      }
+                    </ThinnerKatakana>
                   </label>
                   <label className="accelerator" >
                     {(item as MenuItemProps).accelerator ?? ''}
@@ -278,6 +281,8 @@ const MenuGroup: React.FC<
   }
 );
 
+let removeMenuFocus: (() => void) | undefined = undefined;
+
 /**
  * 工具栏菜单.
  */
@@ -289,6 +294,11 @@ const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
 
     React.useEffect(() => {
       if (expanded) {
+        const blur = () => setExpanded(false);
+
+        removeMenuFocus?.();
+        removeMenuFocus = blur;
+
         const handleClick = (e: MouseEvent) => {
           let target = e.target;
 
@@ -307,6 +317,10 @@ const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
 
         return () => {
           document.removeEventListener('click', handleClick);
+          
+          if (removeMenuFocus === blur) {
+            removeMenuFocus = undefined;
+          }
         };
       }
 
@@ -320,12 +334,39 @@ const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
         return;
       }
 
+      removeMenuFocus?.();
+
       if ((props as MultipleMenuItemProps).subMenu?.length) {
         setExpanded(!expanded);
       } else {
         e.currentTarget.blur();
       }
-    }, [(props as MenuItemProps).callback, expanded, setExpanded, disabled]);
+    }, [
+      (props as MenuItemProps).callback,
+      (props as MultipleMenuItemProps).subMenu?.length,
+      expanded,
+      setExpanded,
+      disabled,
+      removeMenuFocus
+    ]);
+
+    const handleMouseOver = React.useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      if (disabled || expanded || !removeMenuFocus) {
+        return;
+      }
+
+      removeMenuFocus();
+
+      if ((props as MultipleMenuItemProps).subMenu?.length) {
+        setExpanded(true);
+      }
+    }, [
+      (props as MultipleMenuItemProps).subMenu?.length,
+      expanded,
+      setExpanded,
+      disabled,
+      removeMenuFocus
+    ]);
 
     const handleKeyPress = React.useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
       if (disabled) {
@@ -352,11 +393,13 @@ const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
           ref={e => e && [ref.current = e]}
         >
           <label>
-            {
-              props.label.match(/^\$/)
-                ? props.label.replace(/^\$/, '')
-                : t(label)
-            }
+            <ThinnerKatakana force>
+              {
+                props.label.match(/^\$/)
+                  ? props.label.replace(/^\$/, '')
+                  : t(label)
+              }
+            </ThinnerKatakana>
           </label>
         </MenuItemElement>
       );
@@ -367,6 +410,7 @@ const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
         role="menu"
         tabIndex={0}
         onClick={handleClick}
+        onMouseOver={handleMouseOver}
         onKeyPress={handleKeyPress}
         expanded={expanded}
         disabled={false}
@@ -383,11 +427,13 @@ const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
           )
         }
         <label>
-          {
-            props.label.match(/^\$/)
-              ? props.label.replace(/^\$/, '')
-              : t(`${label}._`)
-          }
+          <ThinnerKatakana force>
+            {
+              props.label.match(/^\$/)
+                ? props.label.replace(/^\$/, '')
+                : t(`${label}._`)
+            }
+          </ThinnerKatakana>
         </label>
       </MenuItemElement>
     );

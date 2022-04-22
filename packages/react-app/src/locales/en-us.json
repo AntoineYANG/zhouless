@@ -5,6 +5,7 @@
     "project": {
       "_": "Project",
       "open_video": "Open Video",
+      "open_project": "Open Project",
       "save_project": "Save Project",
       "save_project_as": "Save Project As...",
       "close_project": "Close Project",
@@ -24,5 +25,14 @@
     "minimize": "minimize",
     "maximize": "maximize",
     "close": "close"
-  }
+  },
+  "control_bar": {
+    "play": "play",
+    "pause": "pause",
+    "append_subtitle": "append a subtitle, the time duration is initialized by the time you press and release this button"
+  },
+  "empty_text": "(empty)",
+  "begin_time": "Begin Time",
+  "end_time": "End Time",
+  "subtitle_text": "Text"
 }

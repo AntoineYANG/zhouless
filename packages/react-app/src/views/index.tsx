@@ -13,11 +13,12 @@ import EditorContext, {
 import TitleBar from '@components/title-bar';
 import MediaGroup from '@components/media-group';
 import Menu from '@components/title-bar/menu';
+import EditView from '@components/edit-view';
 
 
 const Main = styled.main({
   flexGrow: 1,
-  flexShrink: 0,
+  flexShrink: 1,
   width: '100vw',
   overflow: 'hidden',
   display: 'flex',
@@ -79,6 +80,9 @@ const App: React.FC = React.memo(function App () {
           context={context}
           dispatch={contextDispatch}
           container={containerRef.current}
+        />
+        <EditView
+          context={context}
         />
       </Main>
     </context.Provider>

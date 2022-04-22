@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 19:00:22 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 18:11:42
+ * @Last Modified time: 2022-04-22 17:17:49
  */
 
 import React from 'react';
@@ -18,7 +18,7 @@ const AudioViewElement = styled.article({
   flexGrow: 1,
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'center',
+  alignItems: 'stretch',
   justifyContent: 'center',
   padding: '12px',
   overflow: 'hidden',
@@ -28,6 +28,15 @@ const AudioViewElement = styled.article({
   '@media (prefers-color-scheme: light)': {
     backgroundColor: '#d6d6d6',
   },
+});
+
+const AudioViewContainer = styled.article({
+  flexGrow: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'stretch',
+  justifyContent: 'center',
+  overflow: 'hidden',
 });
 
 export interface AudioViewProps {

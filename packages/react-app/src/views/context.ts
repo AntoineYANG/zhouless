@@ -2,8 +2,19 @@
  * @Author: Kanata You 
  * @Date: 2022-04-15 21:45:15 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 20:48:34
+ * @Last Modified time: 2022-04-22 22:20:39
  */
+
+import EditHelper from "./edit-helper";
+
+export type SubtitleItemOption = {};
+
+export type SubtitleItem = {
+  beginTime: number;
+  endTime: number;
+  text: string;
+  option: number;
+};
 
 export default interface EditorContext {
   workspace: {
@@ -22,6 +33,11 @@ export default interface EditorContext {
           width: number;
         } | 'failed';
       } | undefined;
+    };
+    helper: EditHelper | null;
+    subtitle: {
+      options: SubtitleItemOption[];
+      data: SubtitleItem[];
     };
   } | undefined;
 }
@@ -86,8 +102,13 @@ export const reducer = ((state: Readonly<EditorContext>, action: EditorContextAc
               audio: undefined,
               size: action.payload.video.size,
               data: action.payload.video
+            },
+            helper: null,
+            subtitle: {
+              options: [],
+              data: []
             }
-          }
+          },
         };
       }
 
@@ -100,6 +121,10 @@ export const reducer = ((state: Readonly<EditorContext>, action: EditorContextAc
           ...state,
           workspace: {
             ...state.workspace,
+            helper: new EditHelper(
+              state.workspace.filename,
+              action.payload.duration
+            ),
             origin: {
               ...state.workspace.origin,
               duration: action.payload.duration

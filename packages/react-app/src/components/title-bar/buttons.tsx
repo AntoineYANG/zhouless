@@ -2,10 +2,10 @@
  * @Author: Kanata You 
  * @Date: 2022-04-21 02:56:54 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 04:28:34
+ * @Last Modified time: 2022-04-22 21:49:31
  */
 
-import safeClose from '@utils/safe-close';
+import safeClose from '@utils/safe_close';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';

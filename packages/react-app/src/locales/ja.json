@@ -1,28 +1,38 @@
 {
   "open_video": "動画を導入",
-  "audio_parse_loading": "動画音声解析中......",
+  "audio_parse_loading": "動画音声分析中...",
   "menu": {
     "project": {
       "_": "プロジェクト",
       "open_video": "動画を導入",
-      "save_project": "Save Project",
-      "save_project_as": "Save Project As...",
-      "close_project": "Close Project",
-      "refresh": "再起動",
-      "exit": "Exit"
+      "open_project": "プロジェクトを開く",
+      "save_project": "プロジェクトを保存",
+      "save_project_as": "名前を付けて保存...",
+      "close_project": "プロジェクトを閉じる",
+      "refresh": "エディターを再起動",
+      "exit": "終了"
     },
     "appearance": {
-      "_": "Appearance",
-      "dark_mode": "Dark Mode",
+      "_": "表示",
+      "dark_mode": "ダークモード",
       "language": {
         "_": "言語"
       }
     }
   },
   "control": {
-    "fullscreen": "full screen",
-    "minimize": "minimize",
-    "maximize": "maximize",
-    "close": "close"
-  }
+    "fullscreen": "全画面表示",
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "close": "終了"
+  },
+  "control_bar": {
+    "play": "play",
+    "pause": "pause",
+    "append_subtitle": "append a subtitle, the time duration is initialized by the time you press and release this button"
+  },
+  "empty_text": "(empty)",
+  "begin_time": "Begin Time",
+  "end_time": "End Time",
+  "subtitle_text": "Text"
 }
