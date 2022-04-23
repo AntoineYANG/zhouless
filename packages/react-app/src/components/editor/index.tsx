@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-22 20:33:57 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-22 23:39:37
+ * @Last Modified time: 2022-04-23 21:12:34
  */
 
 import React from 'react';
@@ -14,7 +14,8 @@ import ResizeBar from '@components/resize-bar';
 import useLocalStorage from '@utils/use_local_storage';
 import EditHelper from '@views/edit-helper';
 import formatTime from '@utils/format_time';
-import { SubtitleItem } from '@views/context';
+import type { SubtitleItem } from '@views/context';
+import TextCell from './text-cell';
 
 
 export interface EditorProps {
@@ -59,25 +60,33 @@ const EditorTableCell = styled.div({
   flexGrow: 0,
   flexShrink: 0,
   minHeight: '1.6em',
-  height: '100%',
   borderWidth: '1px',
   borderBlockEndStyle: 'solid',
   borderInlineEndStyle: 'solid',
-  paddingBlock: '0.2em',
-  paddingInline: '4px',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'pre',
-
+  display: 'flex',
+  
   ':nth-child(1)': {
     userSelect: 'none',
     width: '18px',
+    paddingBlock: '0.2em',
     paddingInline: '2px',
     borderInlineStartStyle: 'solid',
   },
 
   ':nth-child(4)': {
     flexGrow: 1,
+    flexShrink: 1,
+    borderColor: '#6a6a6a',
+  },
+
+  '@media (prefers-color-scheme: dark)': {
+    borderColor: '#6a6a6a',
+  },
+  '@media (prefers-color-scheme: light)': {
+    borderColor: '#aaa',
   },
 });
 
@@ -117,27 +126,28 @@ const EditorTableHeader = styled.div({
   ':nth-child(4)': {
     flexGrow: 1,
   },
+
+  '@media (prefers-color-scheme: dark)': {
+    borderColor: '#6a6a6a',
+  },
+  '@media (prefers-color-scheme: light)': {
+    borderColor: '#aaa',
+  },
 });
 
 const ButtonAppendItem = styled.div({
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: '16px',
-  height: '16px',
-  borderRadius: '50%',
+  width: '100%',
+  height: '100%',
   fontSize: '14px',
   fontWeight: 800,
   lineHeight: '16px',
   cursor: 'pointer',
   color: '#0a4',
-
-  '@media (prefers-color-scheme: dark)': {
-    backgroundColor: '#eee',
-  },
-  '@media (prefers-color-scheme: light)': {
-    border: '1px solid #111',
-  },
+  border: '1px solid #111',
+  backgroundColor: '#eee',
 });
 
 const Editor: React.FC<EditorProps> = React.memo(function Editor ({
@@ -240,7 +250,10 @@ const Editor: React.FC<EditorProps> = React.memo(function Editor ({
                     {formatTime(st.endTime)}
                   </EditorTableCell>
                   <EditorTableCell>
-                    {st.text || t('empty_text')}
+                    <TextCell
+                      value={st.text}
+                      onValueChange={console.log} // FIXME:
+                    />
                   </EditorTableCell>
                 </EditorTableRow>
               ))
@@ -267,7 +280,7 @@ const Editor: React.FC<EditorProps> = React.memo(function Editor ({
                     {formatTime(helper.getPreview()?.endTime ?? NaN)}
                   </EditorTableCell>
                   <EditorTableCell>
-                    {t('empty_text')}
+                    {''}
                   </EditorTableCell>
                 </EditorTableRow>
               ) : (
@@ -295,7 +308,7 @@ const Editor: React.FC<EditorProps> = React.memo(function Editor ({
                     {formatTime(NaN)}
                   </EditorTableCell>
                   <EditorTableCell>
-                    {t('empty_text')}
+                    {''}
                   </EditorTableCell>
                 </EditorTableRow>
               )
