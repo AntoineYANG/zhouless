@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-23 18:56:45 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-23 21:08:54
+ * @Last Modified time: 2022-04-25 16:22:22
  */
 
 import React from 'react';
@@ -11,14 +11,20 @@ import styled from 'styled-components';
 
 
 const TextCellElement = styled.textarea({
-  display: 'block',
-  minHeight: '1.6em',
-  outline: 'none',
   flexGrow: 1,
   flexShrink: 1,
+  minHeight: '1.6em',
+  borderWidth: '1px',
+  borderBlockStartStyle: 'none',
+  borderBlockEndStyle: 'solid',
+  borderInlineStartStyle: 'none',
+  borderInlineEndStyle: 'solid',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  display: 'block',
   paddingBlock: '4px',
   paddingInline: '4px',
-  border: 'none',
+  outline: 'none',
   backgroundColor: 'transparent',
   color: 'inherit',
   fontFamily: 'inherit',
@@ -29,8 +35,14 @@ const TextCellElement = styled.textarea({
   whiteSpace: 'pre-wrap',
   lineBreak: 'anywhere',
   wordBreak: 'break-all',
-  overflow: 'hidden',
   cursor: 'text',
+
+  '@media (prefers-color-scheme: dark)': {
+    borderColor: '#6a6a6a',
+  },
+  '@media (prefers-color-scheme: light)': {
+    borderColor: '#aaa',
+  },
 });
 
 export interface TextCellProps {
@@ -51,12 +63,11 @@ const TextCell: React.FC<TextCellProps> = React.memo(function TextCell ({
 }) {
   const id = React.useId();
   const { t } = useTranslation();
-  const [data, setData] = React.useState(value);
   const [height, setHeight] = React.useState(0);
 
   React.useLayoutEffect(() => {
     setHeight(0);
-  }, [data, setHeight]);
+  }, [value, setHeight]);
 
   // 更新文本框高度（值更新后高度被设为 0，以保证新的高度小于上一高度时可以更新）
   React.useLayoutEffect(() => {
@@ -68,19 +79,25 @@ const TextCell: React.FC<TextCellProps> = React.memo(function TextCell ({
   }, [height, setHeight, id]);
 
   const handleValueChange = React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setData(e.target.value.replace(/[\r\n]+/g, ' ')); // 不含换行
-  }, [setData]);
+    const data = e.target.value.replace(/[\r\n]+/g, ' '); // 不含换行
+
+    if (data !== value) {
+      onValueChange(data);
+    }
+  }, [onValueChange, value]);
 
   const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== 'Alt') {
+      e.stopPropagation();
+    }
+
     isTabPressing = e.key === 'Tab';
 
     if (e.key === 'Enter') {
       e.preventDefault(); // 禁止换行
     }
 
-    if (e.key !== 'Alt') {
-      e.stopPropagation();
-    }
+    return;
   }, []);
 
   const handleKeyUp = React.useCallback(() => {
@@ -101,7 +118,7 @@ const TextCell: React.FC<TextCellProps> = React.memo(function TextCell ({
     <TextCellElement
       id={id}
       tabIndex={0}
-      value={data}
+      value={value}
       placeholder={t('empty_text')}
       spellCheck="false"
       onChange={handleValueChange}

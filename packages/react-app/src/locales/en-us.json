@@ -12,6 +12,11 @@
       "refresh": "Reopen Editor",
       "exit": "Exit"
     },
+    "edit": {
+      "_": "Edit",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
     "appearance": {
       "_": "Appearance",
       "dark_mode": "Dark Mode",
@@ -30,6 +35,11 @@
     "play": "play",
     "pause": "pause",
     "append_subtitle": "append a subtitle, the time duration is initialized by the time you press and release this button"
+  },
+  "append_subtitle": "append a subtitle",
+  "dialog": {
+    "yes": "Yes",
+    "no": "No"
   },
   "empty_text": "(empty)",
   "begin_time": "Begin Time",

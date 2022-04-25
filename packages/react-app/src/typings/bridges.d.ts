@@ -2,11 +2,16 @@
  * @Author: Kanata You 
  * @Date: 2022-04-20 23:05:23 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 23:23:56
+ * @Last Modified time: 2022-04-25 15:25:35
  */
 
-declare let shortcuts: {
+declare const shortcuts: {
   set: (name: string, cb: () => any) => void;
+};
+
+declare const edit: {
+  undo: () => Promise<void>;
+  redo: () => Promise<void>;
 };
 
 declare const electron: {

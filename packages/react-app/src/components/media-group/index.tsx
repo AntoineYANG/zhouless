@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 16:38:33 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-22 22:29:40
+ * @Last Modified time: 2022-04-25 14:43:09
  */
 
 import React from 'react';
@@ -15,6 +15,7 @@ import type EditorContext from '@views/context';
 import type { EditorContextDispatcher } from '@views/context';
 import useLocalStorage from '@utils/use_local_storage';
 import PlayControl from '@components/play-control';
+import EditHelper from '@views/edit-helper';
 
 
 const MIN_HEIGHT = 0.3;
@@ -71,7 +72,8 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
   dispatch,
   container
 }) {
-  const { workspace } = React.useContext(context);
+  const contextState = React.useContext(context);
+  const { workspace } = contextState;
 
   const [groupElement, setGroupElement] = React.useState<HTMLElement>();
   const [height, setHeight] = useLocalStorage(
@@ -96,22 +98,19 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
     dispatch({
       type: 'SET_ORIGIN_DURATION',
       payload: {
-        duration
+        duration,
+        helper: new EditHelper(
+          contextState,
+        )
       }
     });
-  }, [dispatch]);
+  }, [dispatch, contextState]);
 
-  const setAudioWave = React.useCallback((wave: {
-    dataUrl: string;
-    width: number;
-  }) => {
-    dispatch({
-      type: 'SET_AUDIO_WAVE',
-      payload: {
-        wave
-      }
-    });
-  }, [dispatch]);
+  const helper = contextState.workspace?.helper;
+
+  if (helper) {
+    helper.context = contextState;
+  }
 
   const playableListRef = React.useRef<Playable[]>([]);
 
@@ -158,7 +157,6 @@ const MediaGroup: React.FC<MediaGroupProps> = React.memo(function MediaGroup ({
           context={context}
           openVideo={openVideo}
           setVideoDuration={setVideoDuration}
-          setAudioWave={setAudioWave}
           subscribe={subscribe}
           unsubscribe={unsubscribe}
         />

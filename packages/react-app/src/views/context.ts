@@ -2,10 +2,11 @@
  * @Author: Kanata You 
  * @Date: 2022-04-15 21:45:15 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-22 22:20:39
+ * @Last Modified time: 2022-04-25 14:43:37
  */
 
-import EditHelper from "./edit-helper";
+import type EditHelper from './edit-helper';
+
 
 export type SubtitleItemOption = {};
 
@@ -40,10 +41,19 @@ export default interface EditorContext {
       data: SubtitleItem[];
     };
   } | undefined;
+  isClosing: false | ((shouldClose: boolean) => void);
+  settings: {
+    /** 可撤销的操作次数 */
+    operationMemorySize: number;
+  };
 }
 
 export const defaultContextState: EditorContext = {
   workspace: undefined,
+  isClosing: false,
+  settings: {
+    operationMemorySize: 40,
+  },
 };
 
 export type OpenVideoAction = {
@@ -53,10 +63,25 @@ export type OpenVideoAction = {
   };
 };
 
+export type CloseProjectAction = {
+  type: 'CLOSE_PROJECT';
+  payload: {
+    callback: (shouldClose: boolean) => void;
+  };
+};
+
+export type UnsafeCloseAction = {
+  type: 'UNSAFE_CLOSE';
+  payload: {
+    shouldClose: boolean;
+  };
+};
+
 export type SetOriginDurationAction = {
   type: 'SET_ORIGIN_DURATION';
   payload: {
     duration: number;
+    helper: EditHelper;
   };
 };
 
@@ -79,6 +104,8 @@ export type SetAudioWaveAction = {
 
 export type EditorContextAction = (
   | OpenVideoAction
+  | CloseProjectAction
+  | UnsafeCloseAction
   | SetOriginDurationAction
   | SetOriginAudioAction
   | SetAudioWaveAction
@@ -115,16 +142,47 @@ export const reducer = ((state: Readonly<EditorContext>, action: EditorContextAc
       return state;
     }
 
+    case 'CLOSE_PROJECT': {
+      if (state.workspace && !state.isClosing) {
+        return {
+          ...state,
+          isClosing: action.payload.callback
+        };
+      }
+
+      action.payload.callback(false);
+
+      return state;
+    }
+
+    case 'UNSAFE_CLOSE': {
+      if (state.isClosing) {
+        state.isClosing(action.payload.shouldClose);
+
+        if (action.payload.shouldClose) {
+          return {
+            ...state,
+            workspace: undefined,
+            isClosing: false,
+          };
+        } else {
+          return {
+            ...state,
+            isClosing: false
+          };
+        }
+      }
+
+      return state;
+    }
+
     case 'SET_ORIGIN_DURATION': {
       if (state.workspace && state.workspace.origin.duration === undefined) {
         return {
           ...state,
           workspace: {
             ...state.workspace,
-            helper: new EditHelper(
-              state.workspace.filename,
-              action.payload.duration
-            ),
+            helper: action.payload.helper,
             origin: {
               ...state.workspace.origin,
               duration: action.payload.duration

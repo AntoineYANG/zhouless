@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-20 23:29:32 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-22 17:51:14
+ * @Last Modified time: 2022-04-25 15:03:22
  */
 
 import ThinnerKatakana from '@components/thinner-katakana';
@@ -139,9 +139,10 @@ const MenuGroup: React.FC<
     pos: 'right' | 'bottom';
     deep: boolean;
     path: string;
+    onClick: () => void;
   }
 > = React.memo(
-  function MenuNode ({ subMenu, pos, deep, path }) {
+  function MenuNode ({ subMenu, pos, deep, path, onClick }) {
     const { t } = useTranslation();
     const [finished, setFinished] = React.useState(false);
     const [expanded, setExpanded] = React.useState(-1);
@@ -212,9 +213,13 @@ const MenuGroup: React.FC<
                     }
                   }
                   onClick={
-                    () => {
-                      if (finished || disabled) {
+                    e => {
+                      if (finished) {
                         return;
+                      }
+
+                      if (disabled) {
+                        return e.stopPropagation();
                       }
 
                       if ((item as MultipleMenuItemProps).subMenu) {
@@ -222,6 +227,7 @@ const MenuGroup: React.FC<
                       }
 
                       setFinished(true);
+                      onClick();
                       (item as MenuItemProps).callback();
                     }
                   }
@@ -246,6 +252,7 @@ const MenuGroup: React.FC<
                         pos="right"
                         subMenu={(item as MultipleMenuItemProps).subMenu ?? []}
                         deep={true}
+                        onClick={onClick}
                       />
                     )
                   }
@@ -286,7 +293,11 @@ let removeMenuFocus: (() => void) | undefined = undefined;
 /**
  * 工具栏菜单.
  */
-const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
+const MenuItem: React.FC<(
+  MenuItemProps | MultipleMenuItemProps
+) & {
+  onClick: () => void;
+}> = React.memo(
   function MenuItem (props) {
     const { t } = useTranslation();
     const [expanded, setExpanded] = React.useState(false);
@@ -331,12 +342,15 @@ const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
 
     const handleClick = React.useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       if (disabled) {
-        return;
+        return e.stopPropagation();
       }
 
       removeMenuFocus?.();
 
-      if ((props as MultipleMenuItemProps).subMenu?.length) {
+      if ((props as MenuItemProps).callback) {
+        (props as MenuItemProps).callback();
+        props.onClick();
+      } else if ((props as MultipleMenuItemProps).subMenu?.length) {
         setExpanded(!expanded);
       } else {
         e.currentTarget.blur();
@@ -423,6 +437,7 @@ const MenuItem: React.FC<MenuItemProps | MultipleMenuItemProps> = React.memo(
               pos="bottom"
               subMenu={(props as MultipleMenuItemProps).subMenu ?? []}
               deep={false}
+              onClick={props.onClick}
             />
           )
         }

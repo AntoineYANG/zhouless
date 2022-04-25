@@ -2,20 +2,21 @@
  * @Author: Kanata You 
  * @Date: 2022-04-22 20:33:57 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-23 21:12:34
+ * @Last Modified time: 2022-04-25 19:35:15
  */
 
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 
 import type EditorContext from '@views/context';
-import { useTranslation } from 'react-i18next';
 import ResizeBar from '@components/resize-bar';
 import useLocalStorage from '@utils/use_local_storage';
-import EditHelper from '@views/edit-helper';
+import type EditHelper from '@views/edit-helper';
 import formatTime from '@utils/format_time';
 import type { SubtitleItem } from '@views/context';
 import TextCell from './text-cell';
+import TimeCell from './time-cell';
 
 
 export interface EditorProps {
@@ -48,6 +49,7 @@ const EditorTable = styled.div({
 });
 
 const EditorTableRow = styled.div({
+  position: 'relative',
   flexGrow: 0,
   flexShrink: 0,
   width: '100%',
@@ -67,6 +69,8 @@ const EditorTableCell = styled.div({
   textOverflow: 'ellipsis',
   whiteSpace: 'pre',
   display: 'flex',
+  paddingBlock: '4px',
+  paddingInline: '4px',
   
   ':nth-child(1)': {
     userSelect: 'none',
@@ -79,7 +83,6 @@ const EditorTableCell = styled.div({
   ':nth-child(4)': {
     flexGrow: 1,
     flexShrink: 1,
-    borderColor: '#6a6a6a',
   },
 
   '@media (prefers-color-scheme: dark)': {
@@ -136,18 +139,53 @@ const EditorTableHeader = styled.div({
 });
 
 const ButtonAppendItem = styled.div({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '100%',
-  height: '100%',
-  fontSize: '14px',
-  fontWeight: 800,
-  lineHeight: '16px',
+  outline: 'none',
+  flexGrow: 0,
+  flexShrink: 0,
+  display: 'inline-block',
+  width: '16px',
+  height: '16px',
+  marginBlockStart: '4px',
+  borderRadius: '50%',
   cursor: 'pointer',
   color: '#0a4',
-  border: '1px solid #111',
-  backgroundColor: '#eee',
+  '@media (prefers-color-scheme: dark)': {
+    backgroundColor: '#1e1e1e',
+    border: '1px solid #44c6',
+    boxShadow: '1px 1px 5px -1px #0008, inset 6px 5px 12px 2px #ffffff0c',
+
+    ':hover': {
+      boxShadow: '1px 1px 5px -1px #0008, inset 6px 5px 12px 2px #0002',
+    },
+  },
+  '@media (prefers-color-scheme: light)': {
+    backgroundColor: '#e4e4e4',
+    border: '1px solid #6666',
+    boxShadow: '1px 1px 5px -1px #0008, inset 6px 5px 12px 2px #fff',
+
+    ':hover': {
+      boxShadow: '1px 1px 5px -1px #0008, inset 6px 5px 12px 2px #0002',
+    },
+  },
+  transition: 'border-color 200ms, box-shader 200ms, background-color 200ms',
+
+  '& > svg': {
+    width: '98%',
+    height: '98%',
+    borderRadius: '50%',
+    pointerEvents: 'none',
+
+    '& > path': {
+      fill: 'none',
+
+      '@media (prefers-color-scheme: dark)': {
+        stroke: '#aaa',
+      },
+      '@media (prefers-color-scheme: light)': {
+        stroke: '#555',
+      },
+    }
+  },
 });
 
 const Editor: React.FC<EditorProps> = React.memo(function Editor ({
@@ -190,6 +228,36 @@ const Editor: React.FC<EditorProps> = React.memo(function Editor ({
       last.scrollIntoView();
     }
   }, [scrollView?.children, helper?.getPreview?.(), helper?.getSubtitles?.()?.length]);
+
+  // 代理撤销和重做
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && ['y', 'z'].includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+  
+        switch (e.key) {
+          case 'y': {
+            return edit.redo();
+          }
+          case 'z': {
+            return edit.undo();
+          }
+        }
+      }
+
+      return;
+    }
+
+    document.body.addEventListener('keydown', handleKeyDown, {
+      capture: true,
+      passive: false,
+    });
+
+    return () => {
+      document.body.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <EditorContainer>
@@ -235,26 +303,42 @@ const Editor: React.FC<EditorProps> = React.memo(function Editor ({
                   <EditorTableCell>
                     {i + 1}
                   </EditorTableCell>
-                  <EditorTableCell
-                    style={{
-                      width: col1W
+                  <TimeCell
+                    value={st}
+                    onValueChange={val => {
+                      if (helper.isAutoSet) {
+                        // 被撤销/重做触发
+                        return;
+                      } else if (
+                        [val.beginTime, val.endTime].some(d => (
+                          d < 0 || d > (workspace.origin.duration ?? 10)
+                        ))
+                      ) {
+                        // 超出范围
+                        return;
+                      } else if (val.endTime - val.beginTime < 0.1) {
+                        // 起始时间超过结束时间或时间不够 100ms
+                        return helper.writeDuration(i, {
+                          beginTime: val.beginTime,
+                          endTime: val.beginTime + 0.1
+                        });
+                      }
+
+                      helper.writeDuration(i, val);
                     }}
-                  >
-                    {formatTime(st.beginTime)}
-                  </EditorTableCell>
-                  <EditorTableCell
-                    style={{
-                      width: col1W
+                    width={col1W}
+                  />
+                  <TextCell
+                    value={st.text}
+                    onValueChange={val => {
+                      if (helper.isAutoSet) {
+                        // 被撤销/重做触发
+                        return;
+                      }
+
+                      helper.writeText(i, val);
                     }}
-                    >
-                    {formatTime(st.endTime)}
-                  </EditorTableCell>
-                  <EditorTableCell>
-                    <TextCell
-                      value={st.text}
-                      onValueChange={console.log} // FIXME:
-                    />
-                  </EditorTableCell>
+                  />
                 </EditorTableRow>
               ))
             }
@@ -287,10 +371,24 @@ const Editor: React.FC<EditorProps> = React.memo(function Editor ({
                 <EditorTableRow>
                   <EditorTableCell
                     role="button"
-                    onClick={() => helper.appendItem(NaN, NaN)}
+                    onClick={() => {
+                      const video = document.querySelector('video') as HTMLVideoElement | null;
+
+                      if (video) {
+                        const time = video.currentTime;
+                        helper.appendItem(time, time + 5);
+                      }
+                    }}
                   >
-                    <ButtonAppendItem>
-                      {'+'}
+                    <ButtonAppendItem
+                      tabIndex={-1}
+                      title={t('append_subtitle')}
+                    >
+                      <svg viewBox="0 0 20 20" >
+                        <path
+                          d="M5,10 H15 M10,5 V15"
+                        />
+                      </svg>
                     </ButtonAppendItem>
                   </EditorTableCell>
                   <EditorTableCell

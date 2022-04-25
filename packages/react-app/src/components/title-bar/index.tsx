@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-20 22:52:57 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 03:04:38
+ * @Last Modified time: 2022-04-25 15:03:48
  */
 
 import React from 'react';
@@ -80,11 +80,20 @@ const TitleBarButtonGroup = styled.div({
   overflow: 'hidden',
 });
 
+export interface TitleBarProps {
+  menu: Menu;
+  safeCloseProject: () => Promise<boolean>;
+}
+
 /**
  * 窗口顶部标题 & 工具栏.
  */
-const TitleBar: React.FC<{ menu: Menu }> = React.memo(function TitleBar ({ menu }) {
+const TitleBar: React.FC<TitleBarProps> = React.memo(function TitleBar ({
+  menu,
+  safeCloseProject,
+}) {
   const menuBarRef = React.useRef<HTMLDivElement>();
+  const [forceUpdateFlag, forceUpdate] = React.useState(false);
 
   React.useEffect(() => {
     let lock = false;
@@ -162,6 +171,7 @@ const TitleBar: React.FC<{ menu: Menu }> = React.memo(function TitleBar ({ menu 
             <MenuItem
               key={i}
               {...m}
+              onClick={() => forceUpdate(!forceUpdateFlag)}
             />
           ))
         }
@@ -170,7 +180,9 @@ const TitleBar: React.FC<{ menu: Menu }> = React.memo(function TitleBar ({ menu 
         zhouless
       </TitleBarTitle>
       <TitleBarButtonGroup>
-        <Buttons />
+        <Buttons
+          safeCloseProject={safeCloseProject}
+        />
       </TitleBarButtonGroup>
     </TitleBarElement>
   );

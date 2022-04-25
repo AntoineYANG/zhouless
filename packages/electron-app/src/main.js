@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-18 23:52:22 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 23:37:17
+ * @Last Modified time: 2022-04-25 14:01:32
  */
 'use strict';
 
@@ -103,14 +103,18 @@ const useMenu = () => {
     }]
   }));
 
-  // menu.append(new MenuItem({
-  //   label: 'Electron',
-  //   submenu: [{
-  //     role: 'help',
-  //     accelerator: process.platform === 'darwin' ? 'Alt+Cmd+I' : 'Alt+Shift+I',
-  //     click: () => console.log('Electron rocks!')
-  //   }]
-  // }));
+  menu.append(new MenuItem({
+    label: 'Edit',
+    submenu: [{
+      label: 'Undo',
+      accelerator: 'Ctrl+Z',
+      click: () => send('shortcut', 'menu.edit.undo')
+    }, {
+      label: 'Redo',
+      accelerator: 'Ctrl+Y',
+      click: () => send('shortcut', 'menu.edit.redo')
+    }]
+  }));
 
   menu.append(new MenuItem({
     label: 'Dark Mode',

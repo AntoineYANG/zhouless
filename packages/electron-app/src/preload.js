@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-19 00:17:54 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 23:26:41
+ * @Last Modified time: 2022-04-25 15:31:13
  */
 
 const { contextBridge, ipcRenderer } = require('electron');
@@ -27,6 +27,11 @@ ipcRenderer.on('shortcut', (_event, name) => {
 
 contextBridge.exposeInMainWorld('shortcuts', {
   set: (name, cb) => shortcuts[name] = cb,
+});
+
+contextBridge.exposeInMainWorld('edit', {
+  redo: () => shortcuts['menu.edit.redo'](),
+  undo: () => shortcuts['menu.edit.undo'](),
 });
 
 contextBridge.exposeInMainWorld('electron', {

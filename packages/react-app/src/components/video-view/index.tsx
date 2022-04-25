@@ -2,7 +2,7 @@
  * @Author: Kanata You 
  * @Date: 2022-04-13 18:36:40 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-21 18:20:00
+ * @Last Modified time: 2022-04-24 16:49:55
  */
 
 import React from 'react';
@@ -43,10 +43,6 @@ export interface VideoViewProps {
   context: React.Context<EditorContext>;
   openVideo: (video: File) => void;
   setVideoDuration: (duration: number) => void;
-  setAudioWave: (wave: {
-    dataUrl: string;
-    width: number;
-  }) => void;
   subscribe: (item: Playable) => void;
   unsubscribe: (item: Playable) => void;
 }
@@ -59,7 +55,6 @@ const VideoView: React.FC<VideoViewProps> = ({
   context,
   openVideo,
   setVideoDuration,
-  setAudioWave,
   subscribe,
   unsubscribe,
 }) => {
@@ -96,7 +91,6 @@ const VideoView: React.FC<VideoViewProps> = ({
             subscribe={subscribe}
             unsubscribe={unsubscribe}
             onReady={handleVideoReady}
-            setAudioWave={setAudioWave}
           />
         ) : (
           <OpenVideoButton

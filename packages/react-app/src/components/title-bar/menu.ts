@@ -2,13 +2,12 @@
  * @Author: Kanata You 
  * @Date: 2022-04-20 23:35:27 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-22 21:49:27
+ * @Last Modified time: 2022-04-25 15:07:19
  */
 
 import { getLanguage, setLanguage } from '@locales/i18n';
 import asyncEvent from '@utils/async_event';
 import openFile from '@utils/open_file';
-import safeClose, { safeReload, safeWait } from '@utils/safe_close';
 import type EditorContext from '@views/context';
 import type { EditorContextDispatcher } from '@views/context';
 import type { MenuItemProps, MultipleMenuItemProps } from './menu-item';
@@ -22,7 +21,10 @@ export default class Menu {
 
   private readonly dispatcher: EditorContextDispatcher;
 
-  constructor(getContext: () => EditorContext, dispatcher: EditorContextDispatcher) {
+  constructor(
+    getContext: () => EditorContext,
+    dispatcher: EditorContextDispatcher,
+  ) {
     this.getContext = getContext;
     this.dispatcher = dispatcher;
   }
@@ -55,6 +57,17 @@ export default class Menu {
     });
   }
 
+  private safeCloseProject(): Promise<boolean> {
+    return new Promise<boolean>(resolve => {
+      this.dispatcher({
+        type: 'CLOSE_PROJECT',
+        payload: {
+          callback: resolve
+        }
+      });
+    });
+  }
+
   getMenu(): (MenuItemProps | MultipleMenuItemProps)[] {
     const context = this.getContext();
     
@@ -64,20 +77,19 @@ export default class Menu {
         {
           label: 'open_video',
           callback: asyncEvent(async () => {
-            if (await safeWait()) {
-              const data = await openFile(['video/*']);
+            const data = await openFile(['video/*']);
 
-              if (data) {
-                this.dispatcher({
-                  type: 'OPEN_VIDEO',
-                  payload: {
-                    video: data
-                  }
-                });
-              }
+            if (data) {
+              this.dispatcher({
+                type: 'OPEN_VIDEO',
+                payload: {
+                  video: data
+                }
+              });
             }
           }),
-          accelerator: 'Ctrl+N'
+          accelerator: 'Ctrl+N',
+          disabled: () => Boolean(context.workspace),
         },
         '-',
         {
@@ -100,20 +112,58 @@ export default class Menu {
         '-',
         {
           label: 'close_project',
-          callback: notImplemented,
+          callback: async () => {
+            const shouldClose = await this.safeCloseProject();
+
+            console.log(0, {shouldClose});
+          },
           accelerator: 'Ctrl+W',
           disabled: () => !Boolean(context.workspace),
         },
         '-',
         {
           label: 'refresh',
-          callback: safeReload,
+          callback: async () => {
+            const shouldClose = await this.safeCloseProject();
+
+            if (shouldClose) {
+              electron.reload();
+            }
+          },
           accelerator: 'Ctrl+Alt+R'
         },
         {
           label: 'exit',
-          callback: safeClose,
+          callback: async () => {
+            const shouldClose = await this.safeCloseProject();
+
+            if (shouldClose) {
+              electron.close();
+            }
+          },
           accelerator: 'Alt+W'
+        },
+      ]
+    }, {
+      label: 'edit',
+      subMenu: [
+        {
+          label: 'undo',
+          callback: () => {
+            context.workspace?.helper?.undo();
+          },
+          accelerator: 'Ctrl+Z',
+          disabled: () => !Boolean(context.workspace?.helper),
+          // disabled: () => context.workspace?.helper?.canUndo() ?? true,
+        },
+        {
+          label: 'redo',
+          callback: () => {
+            context.workspace?.helper?.redo();
+          },
+          accelerator: 'Ctrl+Y',
+          disabled: () => !Boolean(context.workspace?.helper),
+          // disabled: () => context.workspace?.helper?.canRedo() ?? true,
         },
       ]
     }, {

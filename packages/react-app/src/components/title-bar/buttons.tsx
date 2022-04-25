@@ -2,10 +2,9 @@
  * @Author: Kanata You 
  * @Date: 2022-04-21 02:56:54 
  * @Last Modified by: Kanata You
- * @Last Modified time: 2022-04-22 21:49:31
+ * @Last Modified time: 2022-04-24 16:56:26
  */
 
-import safeClose from '@utils/safe_close';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
@@ -57,7 +56,13 @@ const ButtonElement = styled.div<{ warn?: boolean }>(({ warn = false }) => ({
   },
 }));
 
-const Buttons: React.FC = React.memo(function Buttons () {
+export interface ButtonProps {
+  safeCloseProject: () => Promise<boolean>;
+}
+
+const Buttons: React.FC<ButtonProps> = React.memo(function Buttons ({
+  safeCloseProject,
+}) {
   const { t } = useTranslation();
   const [isFullscreen, setFullscreen] = React.useState<boolean>();
 
@@ -120,8 +125,12 @@ const Buttons: React.FC = React.memo(function Buttons () {
       <ButtonElement
         warn
         onClick={e => {
-          safeClose();
           e.stopPropagation();
+          safeCloseProject().then(shouldClose => {
+            if (shouldClose) {
+              electron.close();
+            }
+          });
         }}
         title={t('control.close')}
       >
